@@ -109,7 +109,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
-
+const db = getFirestore(app);
+  
 document.getElementById("loginButton").addEventListener("click", async () => {
   try {
     await signInWithPopup(auth, provider);
@@ -119,17 +120,18 @@ document.getElementById("loginButton").addEventListener("click", async () => {
 });
 
 onAuthStateChanged(auth, (user) => {
-  if (user) 
- alert("ログイン確認OK"); {
+  if (user) {
     document.getElementById("loginButton").textContent = "ログイン済み";
-    alert("ログイン成功！ Firebaseのユーザー画面でUIDを確認してください。");
- loadWaterSources();
+    alert("ログイン確認OK");
+    loadWaterSources();
+  } else {
+    document.getElementById("loginButton").textContent = "Googleでログイン";
   }
 });
 async function loadWaterSources() {
   try {
     const snapshot = await getDocs(collection(db, "water_sources"));
-　　alert("取得した水利の件数：" + snapshot.size);
+alert("取得した水利の件数：" + snapshot.size);
     snapshot.forEach((doc) => {
       const data = doc.data();
 
