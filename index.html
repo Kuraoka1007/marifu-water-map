@@ -51,6 +51,7 @@ button {
   <button onclick="map.setView([34.17,132.22],16)">岩国周辺</button>
   <button id="loginButton" type="button">Googleでログイン</button>
 　<button id="addHydrantButton" type="button">消火栓を追加</button>
+　<button id="saveHydrantButton" type="button">消火栓を保存</button>
 </div>
 
 <div id="map"></div>
@@ -71,7 +72,7 @@ map.on("click", function(e) {
 
   const lat = e.latlng.lat;
   const lng = e.latlng.lng;
-
+　window.newHydrantLocation = { lat, lng };
   L.marker([lat, lng])
     .addTo(map)
     .bindPopup("新しい消火栓")
@@ -114,7 +115,7 @@ function showLocation() {
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs , addDoc} from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
   
 const firebaseConfig = {
   apiKey: "AIzaSyCJNMjasMqGRKZbELDZlhgsuqMbuSTjeV4",
@@ -130,7 +131,41 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 const db = getFirestore(app);
-  
+document.getElementById("saveHydrantButton").addEventListener("click", async () => {
+  const location = window.newHydrantLocation;
+
+  if (!auth.currentUser) {
+    alert("先にGoogleでログインしてください");
+    return;
+  }
+
+  if (!location) {
+    alert("先に「消火栓を追加」で場所を指定してください");
+    return;
+  }
+
+  const name = prompt("消火栓の名前を入力してください");
+
+  if (!name || !name.trim()) {
+    alert("保存を中止しました");
+    return;
+  }
+
+  try {
+    await addDoc(collection(db, "water_sources"), {
+      name: name.trim(),
+      lat: location.lat,
+      lng: location.lng
+    });
+
+    window.newHydrantLocation = null;
+    alert("消火栓を保存しました！");
+    window.location.reload();
+  } catch (error) {
+    console.error(error);
+    alert("保存できませんでした：" + error.message);
+  }
+});  
 document.getElementById("loginButton").addEventListener("click", async () => {
   try {
     await signInWithPopup(auth, provider);
