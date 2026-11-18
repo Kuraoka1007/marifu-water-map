@@ -49,6 +49,7 @@ button {
 <div id="menu">
   <button onclick="showLocation()">現在地</button>
   <button onclick="map.setView([34.17,132.22],16)">岩国周辺</button>
+  <button id="loginButton" type="button">Googleでログイン</button>
 </div>
 
 <div id="map"></div>
@@ -89,6 +90,39 @@ function showLocation() {
     }
   );
 }
+</script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCJNMjasMqGRKZbELDZlhgsuqMbuSTjeV4",
+  authDomain: "marifu-water-map.firebaseapp.com",
+  projectId: "marifu-water-map",
+  storageBucket: "marifu-water-map.firebasestorage.app",
+  messagingSenderId: "776871900033",
+  appId: "1:776871900033:web:f1d3055ea01f2fc308ae80",
+  measurementId: "G-BMMVXV0F93"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+document.getElementById("loginButton").addEventListener("click", async () => {
+  try {
+    await signInWithPopup(auth, provider);
+  } catch (error) {
+    alert("ログインできませんでした: " + error.message);
+  }
+});
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    document.getElementById("loginButton").textContent = "ログイン済み";
+    alert("ログイン成功！ Firebaseのユーザー画面でUIDを確認してください。");
+  }
+});
 </script>
 
 </body>
