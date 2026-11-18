@@ -94,7 +94,8 @@ function showLocation() {
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
-
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
+  
 const firebaseConfig = {
   apiKey: "AIzaSyCJNMjasMqGRKZbELDZlhgsuqMbuSTjeV4",
   authDomain: "marifu-water-map.firebaseapp.com",
@@ -121,8 +122,35 @@ onAuthStateChanged(auth, (user) => {
   if (user) {
     document.getElementById("loginButton").textContent = "ログイン済み";
     alert("ログイン成功！ Firebaseのユーザー画面でUIDを確認してください。");
+ loadWaterSources();
   }
 });
+async function loadWaterSources() {
+  try {
+    const snapshot = await getDocs(collection(db, "water_sources"));
+
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+
+      if (typeof data.lat !== "number" ||
+          typeof data.lng !== "number" ||
+          !Number.isFinite(data.lat) ||
+          !Number.isFinite(data.lng) ||
+          Math.abs(data.lat) > 90 ||
+          Math.abs(data.lng) > 180) {
+        return;
+      }
+
+      L.marker([data.lat, data.lng])
+        .addTo(map)
+        .bindPopup(data.name || "消防水利");
+    });
+
+  } catch (error) {
+    console.error(error);
+    alert("水利情報を読み込めませんでした。団員登録を確認してください。");
+  }
+}
 </script>
 
 </body>
