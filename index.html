@@ -119,7 +119,8 @@ document.getElementById("loginButton").addEventListener("click", async () => {
 });
 
 onAuthStateChanged(auth, (user) => {
-  if (user) {
+  if (user) 
+ alert("ログイン確認OK"); {
     document.getElementById("loginButton").textContent = "ログイン済み";
     alert("ログイン成功！ Firebaseのユーザー画面でUIDを確認してください。");
  loadWaterSources();
