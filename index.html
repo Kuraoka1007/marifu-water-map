@@ -59,7 +59,26 @@ button {
 
 <script>
 const map = L.map('map').setView([34.17,132.22],15);
+let addHydrantMode = false;
 
+document.getElementById("addHydrantButton").addEventListener("click", function() {
+  addHydrantMode = true;
+  alert("地図上の消火栓の場所をクリックしてください");
+});
+
+map.on("click", function(e) {
+  if (!addHydrantMode) return;
+
+  const lat = e.latlng.lat;
+  const lng = e.latlng.lng;
+
+  L.marker([lat, lng])
+    .addTo(map)
+    .bindPopup("新しい消火栓")
+    .openPopup();
+
+  addHydrantMode = false;
+});
 L.tileLayer(
   'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
   {
