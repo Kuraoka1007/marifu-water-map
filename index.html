@@ -128,7 +128,7 @@ onAuthStateChanged(auth, (user) => {
 async function loadWaterSources() {
   try {
     const snapshot = await getDocs(collection(db, "water_sources"));
-
+　　alert("取得した水利の件数：" + snapshot.size);
     snapshot.forEach((doc) => {
       const data = doc.data();
 
