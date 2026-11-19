@@ -169,7 +169,21 @@ if (!["1", "2", "3"].includes(type)) {
   alert("1・2・3のいずれかを入力してください");
   return;
 }
-  const name = prompt("消防水利の名前を入力してください");
+  const status = prompt(
+  "消防水利の使用状態を選んでください\n" +
+  "1：使用可能\n" +
+  "2：使用注意\n" +
+  "3：使用不可"
+);
+
+if (status === null) return;
+
+if (!["1", "2", "3"].includes(status)) {
+  alert("1・2・3のいずれかを入力してください");
+  return;
+}
+    
+    const name = prompt("消防水利の名前を入力してください");
 
   if (!name || !name.trim()) {
     alert("保存を中止しました");
