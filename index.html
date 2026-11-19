@@ -211,7 +211,10 @@ alert("取得した水利の件数：" + snapshot.size);
   if (layer instanceof L.Marker) {
     markers.push(layer);
   }
-      console.log("マーカーの位置と名前:", layer.getLatLng(), layer.getPopup()?.getContent() || "名前なし");
+      console.log("マーカーの位置と名前:",
+  layer instanceof L.Marker ? layer.getLatLng() : "位置なし",
+  layer instanceof L.Marker ? (layer.getPopup()?.getContent() || "名前なし") : "マーカー以外"
+);
 });
 　alert("地図上のマーカー数：" + markers.length);
     if (markers.length > 0) {
