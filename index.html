@@ -115,7 +115,7 @@ function showLocation() {
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
-import { getFirestore, collection, getDocs , addDoc} from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, addDoc, doc, updateDoc} from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
   
 const firebaseConfig = {
   apiKey: "AIzaSyCJNMjasMqGRKZbELDZlhgsuqMbuSTjeV4",
@@ -183,7 +183,22 @@ onAuthStateChanged(auth, (user) => {
     document.getElementById("loginButton").textContent = "Googleでログイン";
   }
 });
-async function loadWaterSources() {
+ window.editHydrant = async function(id, oldName) {
+  const newName = prompt("新しい消火栓の名前を入力してください", oldName);
+
+  if (newName === null || newName.trim() === "") return;
+
+  try {
+    await updateDoc(doc(db, "water_sources", id), {
+      name: newName.trim()
+    });
+    alert("消火栓の名前を保存しました");
+    location.reload();
+  } catch (error) {
+    alert("保存できませんでした：" + error.message);
+  }
+};
+  async function loadWaterSources() {
   try {
     const snapshot = await getDocs(collection(db, "water_sources"));
 alert("取得した水利の件数：" + snapshot.size);
@@ -204,7 +219,7 @@ if (!Number.isFinite(lat) || !Number.isFinite(lng) ||
         .addTo(map)
         .bindPopup(
   (data.name || "消防水利") +
-  '<br><button type="button" onclick="prompt(\'新しい消火栓の名前を入力してください\')">訂正</button>'
+  '<br><button type="button" onclick="editHydrant(\'' + doc.id + '\', \'' + (data.name || "").replace(/'/g, "\\'") + '\')">訂正</button>'
 );
  　　　console.log("消火栓を地図に追加:", data.name);
     });
