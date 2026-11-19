@@ -78,13 +78,7 @@ map.on("click", function(e) {
   const lat = e.latlng.lat;
   const lng = e.latlng.lng;
 　window.newHydrantLocation = { lat, lng };
-  L.circleMarker([lat, lng], {
-  radius: 9,
-  color: type === "2" ? "blue" : type === "3" ? "green" : "red",
-  fillColor: type === "2" ? "blue" : type === "3" ? "green" : "red",
-  fillOpacity: 0.9,
-  weight: 2
-})
+  L.marker([lat, lng])
   .addTo(map)
     .bindPopup("新しい消火栓")
     .openPopup();
