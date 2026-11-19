@@ -305,8 +305,14 @@ if (!Number.isFinite(lat) || !Number.isFinite(lng) ||
 }
      
 
-      L.marker([lat, lng])
-        .addTo(map)
+      L.circleMarker([lat, lng], {
+  radius: 9,
+  color: type === "2" ? "blue" : type === "3" ? "green" : "red",
+  fillColor: type === "2" ? "blue" : type === "3" ? "green" : "red",
+  fillOpacity: 0.9,
+  weight: 2
+})
+  .addTo(map)
         .bindPopup(
   (data.name || "消防水利") +
   '<br><button type="button" onclick="editHydrant(\'' + doc.id + '\', \'' + (data.name || "").replace(/'/g, "\\'") + '\')">訂正</button>' +
