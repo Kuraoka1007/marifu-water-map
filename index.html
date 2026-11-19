@@ -194,11 +194,12 @@ if (!["1", "2", "3"].includes(status)) {
     await addDoc(collection(db, "water_sources"), {
       name: name.trim(),
       type: type,
+     　status: status,
       lat: location.lat,
       lng: location.lng
     });
 
-    window.newHydrantLocation = null;
+        window.newHydrantLocation = null;
     alert("消火栓を保存しました！");
     window.location.reload();
   } catch (error) {
