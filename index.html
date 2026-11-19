@@ -296,7 +296,7 @@ if (!Number.isFinite(lat) || !Number.isFinite(lng) ||
   layer instanceof L.Marker ? (layer.getPopup()?.getContent() || "名前なし") : "マーカー以外"
 );
 });
-　alert("地図上のマーカー数：" + markers.length);
+　
     if (markers.length > 0) {
   const group = L.featureGroup(markers);
   map.fitBounds(group.getBounds().pad(0.2), { maxZoom: 17 });
