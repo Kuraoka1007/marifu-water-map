@@ -211,12 +211,7 @@ alert("取得した水利の件数：" + snapshot.size);
     markers.push(layer);
   }
 });
-　alert(markers.map((m, i) =>
-  (i + 1) + "番：" +
-  (m.getPopup()?.getContent() || "名前なし") +
-  "　位置：" +
-  m.getLatLng().lat + ", " + m.getLatLng().lng
-).join("\n"));
+　alert("地図上のマーカー数：" + markers.length);
     if (markers.length > 0) {
   const group = L.featureGroup(markers);
   map.fitBounds(group.getBounds().pad(0.2), { maxZoom: 17 });
