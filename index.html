@@ -106,8 +106,14 @@ function showLocation() {
 
       map.setView([lat,lng],18);
 
-      L.marker([lat,lng])
-        .addTo(map)
+      L.circleMarker([lat, lng], {
+  radius: 9,
+  color: type === "2" ? "blue" : type === "3" ? "green" : "red",
+  fillColor: type === "2" ? "blue" : type === "3" ? "green" : "red",
+  fillOpacity: 0.9,
+  weight: 2
+})
+  .addTo(map)
         .bindPopup('現在地')
         .openPopup();
     },
