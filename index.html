@@ -190,8 +190,9 @@ alert("取得した水利の件数：" + snapshot.size);
     snapshot.forEach((doc) => {
       const data = doc.data();
 　　　　console.log("水利データ確認:", doc.id, data);
-console.log("位置変換前:", data.name, data.lat, data.lng);      const lat = Number(data.lat);
-const lng = Number(data.lng);
+　　console.log("水利の全項目:", data.name, Object.keys(data)); 
+      const lat = Number(data.lat);
+　　　const lng = Number(data.lng);
 
 if (!Number.isFinite(lat) || !Number.isFinite(lng) ||
     Math.abs(lat) > 90 || Math.abs(lng) > 180) {
