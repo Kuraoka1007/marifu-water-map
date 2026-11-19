@@ -67,9 +67,7 @@ onclick="alert('ログアウトボタン確認OK')">
 const map = L.map('map').setView([34.17,132.22],15);
 let addHydrantMode = false;
 
-document.getElementById("emailLoginButton").addEventListener("click", async () => {
- 
-  document.getElementById("addHydrantButton").addEventListener("click", function() {
+document.getElementById("addHydrantButton").addEventListener("click", function() {
   addHydrantMode = true;
   alert("地図上の消火栓の場所をクリックしてください");
 });
