@@ -359,8 +359,9 @@ if (!Number.isFinite(lat) || !Number.isFinite(lng) ||
        .bindPopup(
   (data.name || "消防水利") +
   "<br>使用状態：" +
-  (status === "2" ? "使用注意" :
-   status === "3" ? "使用不可" : "使用可能") +
+  (status === "0" ? "未確認" :
+ status === "2" ? "使用注意" :
+ status === "3" ? "使用不可" : "使用可能") +
   '<br><button type="button" onclick="editHydrant(\'' + doc.id + '\', \'' + (data.name || "").replace(/'/g, "\\'") + '\')">訂正</button>' +
 '<br><button type="button" onclick="moveHydrant(\'' + doc.id + '\')">位置訂正</button>'+
 '<br><button type="button" onclick="editStatus(\'' + doc.id + '\')">使用状態訂正</button>'
