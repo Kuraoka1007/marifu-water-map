@@ -205,12 +205,14 @@ alert("取得した水利の件数：" + snapshot.size);
  　　　
     });
 　const markers = [];
-map.eachLayer((layer) => {
+　console.log("地図上のマーカー確認開始");
+    map.eachLayer((layer) => {
   if (layer instanceof L.Marker) {
     markers.push(layer);
   }
 });
-if (markers.length > 0) {
+　alert("地図上のマーカー数：" + markers.length);
+    if (markers.length > 0) {
   const group = L.featureGroup(markers);
   map.fitBounds(group.getBounds().pad(0.2), { maxZoom: 17 });
 }
