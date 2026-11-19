@@ -179,6 +179,7 @@ if (!["1", "2", "3"].includes(type)) {
   try {
     await addDoc(collection(db, "water_sources"), {
       name: name.trim(),
+      type: type,
       lat: location.lat,
       lng: location.lng
     });
