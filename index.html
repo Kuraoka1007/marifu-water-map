@@ -296,6 +296,38 @@ window.moveHydrant = async function(id) {
   });
 };
 
+  window.editStatus = async function(id) {
+  if (!auth.currentUser) {
+    alert("先にログインしてください");
+    return;
+  }
+
+  const status = prompt(
+    "新しい使用状態を選んでください\n" +
+    "1：使用可能\n" +
+    "2：使用注意\n" +
+    "3：使用不可"
+  );
+
+  if (status === null) return;
+
+  if (!["1", "2", "3"].includes(status)) {
+    alert("1・2・3のいずれかを入力してください");
+    return;
+  }
+
+  try {
+    await updateDoc(doc(db, "water_sources", id), {
+      status: status
+    });
+
+    alert("使用状態を保存しました！");
+    window.location.reload();
+
+  } catch (error) {
+    alert("保存できませんでした：" + error.message);
+  }
+};
   async function loadWaterSources() {
   try {
     const snapshot = await getDocs(collection(db, "water_sources"));
@@ -330,6 +362,7 @@ if (!Number.isFinite(lat) || !Number.isFinite(lng) ||
    status === "3" ? "使用不可" : "使用可能") +
   '<br><button type="button" onclick="editHydrant(\'' + doc.id + '\', \'' + (data.name || "").replace(/'/g, "\\'") + '\')">訂正</button>' +
 '<br><button type="button" onclick="moveHydrant(\'' + doc.id + '\')">位置訂正</button>'+
+'<br><button type="button" onclick="editStatus(\'' + doc.id + '\')">使用状態訂正</button>'
 );
  　　　console.log("消火栓を地図に追加:", data.name);
     });
