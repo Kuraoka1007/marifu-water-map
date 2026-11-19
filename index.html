@@ -190,16 +190,16 @@ alert("取得した水利の件数：" + snapshot.size);
     snapshot.forEach((doc) => {
       const data = doc.data();
 　　　　console.log("水利データ確認:", doc.id, data);
-      if (typeof data.lat !== "number" ||
-          typeof data.lng !== "number" ||
-          !Number.isFinite(data.lat) ||
-          !Number.isFinite(data.lng) ||
-          Math.abs(data.lat) > 90 ||
-          Math.abs(data.lng) > 180) {
-        return;
+      const lat = Number(data.lat);
+const lng = Number(data.lng);
+
+if (!Number.isFinite(lat) || !Number.isFinite(lng) ||
+    Math.abs(lat) > 90 || Math.abs(lng) > 180) {
+  return;
+}
       }
 
-      L.marker([data.lat, data.lng])
+      L.marker([lat, lng])
         .addTo(map)
         .bindPopup(data.name || "消防水利");
  　　　console.log("消火栓を地図に追加:", data.name);
