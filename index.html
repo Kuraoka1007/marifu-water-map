@@ -208,6 +208,38 @@ onAuthStateChanged(auth, (user) => {
     alert("新しい位置を選択しました。\n緯度：" + lat + "\n経度：" + lng);
   });
 };
+ 
+window.moveHydrant = async function(id) {
+  if (!auth.currentUser) {
+    alert("先にGoogleでログインしてください");
+    return;
+  }
+
+  alert("地図上の新しい位置をクリックしてください");
+
+  map.once("click", async function(e) {
+    const lat = e.latlng.lat;
+    const lng = e.latlng.lng;
+
+    if (!confirm("この位置に変更して保存しますか？")) {
+      return;
+    }
+
+    try {
+      await updateDoc(doc(db, "water_sources", id), {
+        lat: lat,
+        lng: lng
+      });
+
+      alert("新しい位置を保存しました！");
+      window.location.reload();
+
+    } catch (error) {
+      alert("保存できませんでした：" + error.message);
+    }
+  });
+};
+
   async function loadWaterSources() {
   try {
     const snapshot = await getDocs(collection(db, "water_sources"));
