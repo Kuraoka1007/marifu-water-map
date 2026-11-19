@@ -156,7 +156,19 @@ document.getElementById("logoutButton").addEventListener("click", async () => {
     alert("先に「消火栓を追加」で場所を指定してください");
     return;
   }
+const type = prompt(
+  "消防水利の種類を番号で選んでください\n" +
+  "1：消火栓\n" +
+  "2：防火水槽\n" +
+  "3：その他"
+);
 
+if (type === null) return;
+
+if (!["1", "2", "3"].includes(type)) {
+  alert("1・2・3のいずれかを入力してください");
+  return;
+}
   const name = prompt("消防水利の名前を入力してください");
 
   if (!name || !name.trim()) {
