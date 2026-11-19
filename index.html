@@ -204,7 +204,16 @@ alert("取得した水利の件数：" + snapshot.size);
         .bindPopup(data.name || "消防水利");
  　　　
     });
-　
+　const markers = [];
+map.eachLayer((layer) => {
+  if (layer instanceof L.Marker) {
+    markers.push(layer);
+  }
+});
+if (markers.length > 0) {
+  const group = L.featureGroup(markers);
+  map.fitBounds(group.getBounds().pad(0.2), { maxZoom: 17 });
+}
   } catch (error) {
     console.error(error);
     alert("水利情報を読み込めませんでした。団員登録を確認してください。");
