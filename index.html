@@ -195,7 +195,7 @@ document.getElementById("emailLoginButton").addEventListener("click", async () =
 onAuthStateChanged(auth, (user) => {
   if (user) {
     document.getElementById("loginButton").textContent = "ログイン済み";
-    alert("ログイン確認OK");
+    
     loadWaterSources();
   } else {
     document.getElementById("loginButton").textContent = "Googleでログイン";
