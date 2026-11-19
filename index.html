@@ -204,7 +204,7 @@ if (!Number.isFinite(lat) || !Number.isFinite(lng) ||
         .addTo(map)
         .bindPopup(
   (data.name || "消防水利") +
-  '<br><button type="button">訂正</button>'
+  '<br><button type="button" onclick="alert(\'訂正ボタンが押されました\')">訂正</button>'
 );
  　　　console.log("消火栓を地図に追加:", data.name);
     });
