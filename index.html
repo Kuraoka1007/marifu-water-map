@@ -189,7 +189,7 @@ async function loadWaterSources() {
 alert("取得した水利の件数：" + snapshot.size);
     snapshot.forEach((doc) => {
       const data = doc.data();
-
+　　　　console.log("水利データ確認:", doc.id, data);
       if (typeof data.lat !== "number" ||
           typeof data.lng !== "number" ||
           !Number.isFinite(data.lat) ||
