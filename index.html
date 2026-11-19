@@ -50,6 +50,7 @@ button {
   <button onclick="showLocation()">現在地</button>
   <button onclick="map.setView([34.17,132.22],16)">岩国周辺</button>
   <button id="loginButton" type="button">Googleでログイン</button>
+  <button id="emailLoginButton" type="button">メールでログイン</button>
 　<button id="addHydrantButton" type="button">消火栓を追加</button>
 　<button id="saveHydrantButton" type="button">消火栓を保存</button>
 </div>
@@ -114,7 +115,7 @@ function showLocation() {
 </script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
 import { getFirestore, collection, getDocs, addDoc, doc, updateDoc} from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
   
 const firebaseConfig = {
