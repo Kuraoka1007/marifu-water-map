@@ -205,11 +205,13 @@ alert("取得した水利の件数：" + snapshot.size);
  　　　
     });
 　const markers = [];
-　console.log("地図上のマーカー確認開始");
+　console.log("マーカー確認開始");
+    console.log("地図上のマーカー確認開始");
     map.eachLayer((layer) => {
   if (layer instanceof L.Marker) {
     markers.push(layer);
   }
+      console.log("マーカーの位置と名前:", layer.getLatLng(), layer.getPopup()?.getContent() || "名前なし");
 });
 　alert("地図上のマーカー数：" + markers.length);
     if (markers.length > 0) {
