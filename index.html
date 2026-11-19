@@ -190,7 +190,7 @@ alert("取得した水利の件数：" + snapshot.size);
     snapshot.forEach((doc) => {
       const data = doc.data();
 　　　　console.log("水利データ確認:", doc.id, data);
-　　console.log("水利の全項目:", data.name, Object.keys(data)); 
+　　console.log("水利の項目名を詳しく確認:", data.name, JSON.stringify(Object.keys(data)));
       const lat = Number(data.lat);
 　　　const lng = Number(data.lng);
 
