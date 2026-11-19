@@ -329,7 +329,7 @@ if (!Number.isFinite(lat) || !Number.isFinite(lng) ||
   (status === "2" ? "使用注意" :
    status === "3" ? "使用不可" : "使用可能") +
   '<br><button type="button" onclick="editHydrant(\'' + doc.id + '\', \'' + (data.name || "").replace(/'/g, "\\'") + '\')">訂正</button>' +
-'<br><button type="button" onclick="moveHydrant(\'' + doc.id + '\')">位置訂正</button>'
+'<br><button type="button" onclick="moveHydrant(\'' + doc.id + '\')">位置訂正</button>'+
 );
  　　　console.log("消火栓を地図に追加:", data.name);
     });
