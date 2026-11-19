@@ -336,6 +336,7 @@ window.moveHydrant = async function(id) {
       const data = doc.data();
       const type = data.type || "1";
 　　　　const status = data.status || "1";
+     const markerWeight = status === "3" ? 6 : status === "2" ? 4 : 2;
       console.log("水利データ確認:", doc.id, data);
 　console.log("項目名の文字コード:", data.name, Object.keys(data).map(k => [k, [...k].map(c => c.charCodeAt(0))]));
       const lat = Number(data.lat);
