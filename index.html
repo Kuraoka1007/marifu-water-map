@@ -257,7 +257,29 @@ document.getElementById("emailLoginButton").addEventListener("click", async () =
     alert("ログインできませんでした。メールアドレスとパスワードを確認してください。");
   }
 });
-onAuthStateChanged(auth, (user) => {
+document.getElementById("registerButton").addEventListener("click", async () => {
+  const email = prompt("登録するメールアドレスを入力してください");
+  if (!email) return;
+
+  const password = prompt("登録するパスワードを入力してください（6文字以上）");
+  if (!password) return;
+
+  try {
+    const result = await createUserWithEmailAndPassword(
+      auth, email.trim(), password
+    );
+
+    alert(
+      "新規登録が完了しました。\n" +
+      "分団長の承認後に水利マップを利用できます。\n" +
+      "登録UID：" + result.user.uid
+    );
+  } catch (error) {
+    console.error(error);
+    alert("新規登録できませんでした：" + error.message);
+  }
+});
+  onAuthStateChanged(auth, (user) => {
   if (user) {
     document.getElementById("loginButton").textContent = "ログイン済み";
     
