@@ -202,8 +202,9 @@ alert("取得した水利の件数：" + snapshot.size);
       L.marker([data.lat, data.lng])
         .addTo(map)
         .bindPopup(data.name || "消防水利");
+ 　　　 console.log("マーカー作成成功:", data.name, data.lat, data.lng);
     });
-　　console.log("マーカー作成成功:", data.name, data.lat, data.lng);
+　
   } catch (error) {
     console.error(error);
     alert("水利情報を読み込めませんでした。団員登録を確認してください。");
