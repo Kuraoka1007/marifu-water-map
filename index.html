@@ -287,6 +287,7 @@ window.moveHydrant = async function(id) {
 
     snapshot.forEach((doc) => {
       const data = doc.data();
+      const type = data.type || "1";
 　　　　console.log("水利データ確認:", doc.id, data);
 　console.log("項目名の文字コード:", data.name, Object.keys(data).map(k => [k, [...k].map(c => c.charCodeAt(0))]));
       const lat = Number(data.lat);
