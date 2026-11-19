@@ -318,7 +318,7 @@ if (!Number.isFinite(lat) || !Number.isFinite(lng) ||
 　console.log("マーカー確認開始");
     console.log("地図上のマーカー確認開始");
     map.eachLayer((layer) => {
-  if (layer instanceof L.Marker) {
+ if (layer instanceof L.Marker || layer instanceof L.CircleMarker) {
     markers.push(layer);
   }
       console.log("マーカーの位置と名前:",
