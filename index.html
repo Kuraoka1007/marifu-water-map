@@ -261,7 +261,7 @@ window.moveHydrant = async function(id) {
   async function loadWaterSources() {
   try {
     const snapshot = await getDocs(collection(db, "water_sources"));
-alert("取得した水利の件数：" + snapshot.size);
+
     snapshot.forEach((doc) => {
       const data = doc.data();
 　　　　console.log("水利データ確認:", doc.id, data);
