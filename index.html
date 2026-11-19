@@ -202,7 +202,7 @@ alert("取得した水利の件数：" + snapshot.size);
       L.marker([data.lat, data.lng])
         .addTo(map)
         .bindPopup(data.name || "消防水利");
- 　　　
+ 　　　console.log("消火栓を地図に追加:", data.name);
     });
 　const markers = [];
 　console.log("マーカー確認開始");
