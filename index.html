@@ -198,6 +198,9 @@ onAuthStateChanged(auth, (user) => {
     alert("保存できませんでした：" + error.message);
   }
 };
+ window.moveHydrant = async function(id) {
+  alert("位置訂正モードにします。次に地図上の新しい位置をクリックしてください。");
+};
   async function loadWaterSources() {
   try {
     const snapshot = await getDocs(collection(db, "water_sources"));
