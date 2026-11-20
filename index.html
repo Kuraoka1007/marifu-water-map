@@ -535,9 +535,12 @@ if (!importConfirmed) {
     return true;
   });
 }
-  const testRecords = newRecords.slice(0, 10);
+  const testRecords = newRecords;
 const registerTen = confirm(
-  "未登録の消火栓を最大10か所登録します。\nよろしいですか？"
+  "未登録の消火栓 " + testRecords.length +
+  " か所を一括登録します。\n" +
+  "登録済みの消火栓は上書きしません。\n" +
+  "よろしいですか？"
 );
 
 if (registerTen) {
@@ -552,7 +555,12 @@ if (registerTen) {
     }
   }
 
-  alert(successCount + "か所を新しく登録しました");
+  alert(
+  "登録処理が終了しました。\n" +
+  "新しく登録できた数：" + successCount + "か所\n" +
+  "登録できなかった数：" +
+  (testRecords.length - successCount) + "か所"
+);
   return;
 }
   console.log("10か所の登録テスト対象:", testRecords);
