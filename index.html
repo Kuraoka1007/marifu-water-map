@@ -150,7 +150,7 @@ function showLocation() {
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, getDoc, addDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, getDoc, addDoc, doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
 const firebaseConfig = {
   apiKey: "AIzaSyCJNMjasMqGRKZbELDZlhgsuqMbuSTjeV4",
   authDomain: "marifu-water-map.firebaseapp.com",
@@ -331,12 +331,21 @@ document.getElementById("registerButton").addEventListener("click", async () => 
 
   const password = prompt("登録するパスワードを入力してください（6文字以上）");
   if (!password) return;
+const name = prompt("団員のお名前を入力してください");
 
+if (!name || !name.trim()) {
+  alert("登録を中止しました");
+  return;
+}
   try {
     const result = await createUserWithEmailAndPassword(
       auth, email.trim(), password
     );
-
+await setDoc(doc(db, "members", result.user.uid), {
+  name: name.trim(),
+  approved: false
+});
+    
     alert(
       "新規登録が完了しました。\n" +
       "分団長の承認後に水利マップを利用できます。\n" +
