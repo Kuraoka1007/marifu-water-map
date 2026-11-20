@@ -438,8 +438,8 @@ await setDoc(doc(db, "members", result.user.uid), {
       if (memberSnap.exists() && memberSnap.data().approved === true) {
       if (memberSnap.data().role === "admin") {
   document.getElementById("approveMemberButton").style.display = "inline-block";
-}
-   document.getElementById("revokeMemberButton").style.display = "inline-block";    
+ }
+   
         document.getElementById("loginButton").textContent = "ログイン済み";
         loadWaterSources();
       } else {
