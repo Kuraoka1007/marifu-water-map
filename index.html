@@ -70,6 +70,9 @@ button {
   <button id="approveMemberButton" type="button" style="display:none;">
   団員承認
 </button>
+  <button id="revokeMemberButton" style="display:none;">
+  承認取り消し
+</button>
   <button id="logoutButton" type="button"
 onclick="alert('ログアウトボタン確認OK')">
 ログアウト
@@ -230,6 +233,74 @@ document.getElementById("approveMemberButton").addEventListener("click", async (
     alert("団員情報を取得できませんでした：" + error.message);
   }
 });
+ document.getElementById("revokeMemberButton").addEventListener("click", async () => {
+  if (!auth.currentUser) return;
+
+  try {
+    const adminSnap = await getDoc(
+      doc(db, "members", auth.currentUser.uid)
+    );
+
+    if (!adminSnap.exists() ||
+        adminSnap.data().role !== "admin" ||
+        adminSnap.data().approved !== true) {
+      alert("管理者だけが利用できます");
+      return;
+    }
+
+    const snapshot = await getDocs(collection(db, "members"));
+    const approvedMembers = [];
+
+    snapshot.forEach((member) => {
+      if (member.id !== auth.currentUser.uid &&
+          member.data().approved === true) {
+        approvedMembers.push({
+          id: member.id,
+          name: member.data().name || "名前未登録"
+        });
+      }
+    });
+
+    if (approvedMembers.length === 0) {
+      alert("承認済みの団員はいません");
+      return;
+    }
+
+    const names = approvedMembers.map((m, i) =>
+      (i + 1) + "：" + m.name
+    ).join("\n");
+
+    const choice = prompt(
+      "承認を取り消す団員の番号を入力してください。\n" + names
+    );
+
+    if (choice === null) return;
+
+    const number = Number(choice);
+
+    if (!Number.isInteger(number) ||
+        number < 1 ||
+        number > approvedMembers.length) {
+      alert("正しい番号を入力してください");
+      return;
+    }
+
+    const member = approvedMembers[number - 1];
+
+    if (!confirm(member.name + " さんの承認を取り消しますか？")) {
+      return;
+    }
+
+    await updateDoc(doc(db, "members", member.id), {
+      approved: false
+    });
+
+    alert(member.name + " さんの承認を取り消しました！");
+
+  } catch (error) {
+    alert("承認を取り消せませんでした：" + error.message);
+  }
+});
   document.getElementById("logoutButton").addEventListener("click", async () => {
   try {
     await signOut(auth);
@@ -367,6 +438,7 @@ await setDoc(doc(db, "members", result.user.uid), {
       if (memberSnap.data().role === "admin") {
   document.getElementById("approveMemberButton").style.display = "inline-block";
 }
+   document.getElementById("revokeMemberButton").style.display = "inline-block";    
         document.getElementById("loginButton").textContent = "ログイン済み";
         loadWaterSources();
       } else {
