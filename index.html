@@ -233,7 +233,8 @@ document.getElementById("approveMemberButton").addEventListener("click", async (
     alert("団員情報を取得できませんでした：" + error.message);
   }
 });
- document.getElementById("revokeMemberButton").addEventListener("click", async () => {
+
+  document.getElementById("revokeMemberButton").addEventListener("click", async () => {
   if (!auth.currentUser) return;
 
   try {
