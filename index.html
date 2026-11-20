@@ -62,7 +62,18 @@ button {
 <header>麻里布分団 水利マップ</header>
 
 <div id="menu">
-<button type="button" id="importKmlButton" style="display:none">
+<input
+  type="text"
+  id="searchNumber"
+  placeholder="消火栓番号を入力"
+  style="width:150px; padding:10px;"
+>
+
+<button id="searchButton">
+  🔍 検索
+</button>
+  
+  <button type="button" id="importKmlButton" style="display:none">
   KML取込
 </button>
   <button onclick="showLocation()">現在地</button>
@@ -779,10 +790,34 @@ window.moveHydrant = async function(id) {
     alert("削除できませんでした：" + error.message);
   }
 };
+ let searchWaterSources = [];
+ document.getElementById("searchButton").addEventListener("click", () => {
+  const number = document.getElementById("searchNumber").value.trim();
+
+  if (!number) {
+    alert("消火栓番号を入力してください");
+    return;
+  }
+
+  const found = searchWaterSources.find(
+    item => String(item.name).trim() === number
+  );
+
+  if (!found) {
+    alert("消火栓番号 " + number + " は見つかりません");
+    return;
+  }
+
+  map.setView([Number(found.lat), Number(found.lng)], 18);
+});
+  
   async function loadWaterSources() {
   try {
     const snapshot = await getDocs(collection(db, "water_sources"));
-
+searchWaterSources = snapshot.docs.map(item => ({
+  id: item.id,
+  ...item.data()
+}));
     snapshot.forEach((doc) => {
       const data = doc.data();
       const type = data.type || "1";
