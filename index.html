@@ -67,6 +67,9 @@ button {
   <button id="loginButton" type="button">Googleでログイン</button>
   <button id="emailLoginButton" type="button">メールでログイン</button>
 　<button id="registerButton" type="button">新規登録</button>
+  <button id="approveMemberButton" type="button" style="display:none;">
+  団員承認
+</button>
   <button id="logoutButton" type="button"
 onclick="alert('ログアウトボタン確認OK')">
 ログアウト
@@ -162,7 +165,10 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 const db = getFirestore(app);
-document.getElementById("logoutButton").addEventListener("click", async () => {
+document.getElementById("approveMemberButton").addEventListener("click", () => {
+  alert("団員承認ボタンが押されました");
+});
+  document.getElementById("logoutButton").addEventListener("click", async () => {
   try {
     await signOut(auth);
     alert("ログアウトしました");
@@ -287,6 +293,9 @@ document.getElementById("registerButton").addEventListener("click", async () => 
       const memberSnap = await getDoc(doc(db, "members", user.uid));
 
       if (memberSnap.exists() && memberSnap.data().approved === true) {
+      if (memberSnap.data().role === "admin") {
+  document.getElementById("approveMemberButton").style.display = "inline-block";
+}
         document.getElementById("loginButton").textContent = "ログイン済み";
         loadWaterSources();
       } else {
