@@ -483,6 +483,17 @@ if (name && coordinates && Number.isFinite(lat) && Number.isFinite(lng)) {
 
 console.log("取込用管理ID:", importRecords);
 alert("Firebase登録予定：" + importRecords.length + "か所");
+const existingSnapshot = await getDocs(collection(db, importCollection));
+
+const existingIds = new Set(
+  existingSnapshot.docs.map(item => item.id)
+);
+
+const newRecords = importRecords.filter(
+  record => !existingIds.has(record.importId)
+);
+
+alert("新しく登録できる地点：" + newRecords.length + "か所");
   let validCount = 0;
 
 for (const place of placemarks) {
