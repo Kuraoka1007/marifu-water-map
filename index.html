@@ -453,7 +453,36 @@ document.getElementById("kmlFileInput").addEventListener("change", async (event)
     return;
   }
 
+  const importCollection = "water_sources";
+  const importIdPrefix = "marifu_kml_";
   const placemarks = kmlDoc.getElementsByTagName("Placemark");
+  const importRecords = [];
+
+for (let i = 0; i < placemarks.length; i++) {
+  const importId = importIdPrefix + String(i + 1).padStart(4, "0");
+  const place = placemarks[i];
+
+const name = place.getElementsByTagName("name")[0]?.textContent?.trim() || "";
+
+const point = place.getElementsByTagName("Point")[0];
+const coordinates = point?.getElementsByTagName("coordinates")[0]?.textContent?.trim() || "";
+
+const [lng, lat] = coordinates.split(",").map(Number);
+
+if (name && coordinates && Number.isFinite(lat) && Number.isFinite(lng)) {
+  importRecords.push({
+    importId: importId,
+    name: name,
+    type: "1",
+    status: "0",
+    lat: lat,
+    lng: lng
+  });
+}
+}
+
+console.log("取込用管理ID:", importRecords);
+alert("Firebase登録予定：" + importRecords.length + "か所");
   let validCount = 0;
 
 for (const place of placemarks) {
