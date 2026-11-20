@@ -183,17 +183,49 @@ document.getElementById("approveMemberButton").addEventListener("click", async (
     const snapshot = await getDocs(collection(db, "members"));
     const pending = [];
 
-    snapshot.forEach((member) => {
-      if (member.data().approved !== true) {
-        pending.push(member.data().name || member.id);
-      }
+   snapshot.forEach((member) => {
+  if (member.data().approved !== true) {
+    pending.push({
+      id: member.id,
+      name: member.data().name || "名前未登録"
     });
-
+  }
+});
     if (pending.length === 0) {
-      alert("承認待ちの団員はいません");
-    } else {
-      alert("承認待ちの団員：\n" + pending.join("\n"));
-    }
+  alert("承認待ちの団員はいません");
+} else {
+  const names = pending.map((m, i) =>
+    (i + 1) + "：" + m.name
+  ).join("\n");
+
+  const choice = prompt(
+    "承認する団員の番号を入力してください。\n" +
+    names
+  );
+
+  if (choice === null) return;
+
+  const number = Number(choice);
+
+  if (!Number.isInteger(number) ||
+      number < 1 ||
+      number > pending.length) {
+    alert("正しい番号を入力してください");
+    return;
+  }
+
+  const member = pending[number - 1];
+
+  if (!confirm(member.name + " さんを承認しますか？")) {
+    return;
+  }
+
+  await updateDoc(doc(db, "members", member.id), {
+    approved: true
+  });
+
+  alert(member.name + " さんを承認しました！");
+}
   } catch (error) {
     alert("団員情報を取得できませんでした：" + error.message);
   }
