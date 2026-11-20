@@ -454,7 +454,16 @@ document.getElementById("kmlFileInput").addEventListener("change", async (event)
   }
 
   const placemarks = kmlDoc.getElementsByTagName("Placemark");
+const first = placemarks[0];
 
+if (first) {
+  const name = first.getElementsByTagName("name")[0]?.textContent || "";
+  const coordinates = first.getElementsByTagName("coordinates")[0]?.textContent || "";
+
+  alert("最初の消火栓番号：" + name +
+        "\n位置情報：" + coordinates.trim());
+}
+  
   alert("KMLファイルを読み込みました。登録地点数：" + placemarks.length);
 });
   onAuthStateChanged(auth, async (user) => {
