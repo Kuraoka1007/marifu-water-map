@@ -156,7 +156,7 @@ function showLocation() {
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, getDoc, addDoc, doc, updateDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, getDoc, addDoc, doc, updateDoc, setDoc, runTransaction, deleteDoc } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
 const firebaseConfig = {
   apiKey: "AIzaSyCJNMjasMqGRKZbELDZlhgsuqMbuSTjeV4",
   authDomain: "marifu-water-map.firebaseapp.com",
@@ -504,6 +504,27 @@ if (importRecords.length !== 629) {
 }
 
 alert("今回の新規登録対象：" + newRecords.length + "か所");
+const importConfirmed = confirm(
+  "Googleマイマップの水利データを確認しました。\n" +
+  "新規登録対象：" + newRecords.length + "か所\n\n" +
+  "登録準備を続けますか？"
+);
+
+if (!importConfirmed) {
+  alert("取り込み準備を中止しました");
+  return;
+}
+ const testRecord = newRecords[0];
+
+if (testRecord) {
+  console.log("登録テスト対象:", testRecord);
+  alert(
+    "登録テスト対象\n" +
+    "番号：" + testRecord.name + "\n" +
+    "緯度：" + testRecord.lat + "\n" +
+    "経度：" + testRecord.lng
+  );
+}
   let validCount = 0;
 
 for (const place of placemarks) {
