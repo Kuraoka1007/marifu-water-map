@@ -153,8 +153,7 @@ function showLocation() {
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, getDoc, addDoc, doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
-const firebaseConfig = {
+import { getFirestore, collection, getDocs, getDoc, addDoc, doc, updateDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
   apiKey: "AIzaSyCJNMjasMqGRKZbELDZlhgsuqMbuSTjeV4",
   authDomain: "marifu-water-map.firebaseapp.com",
   projectId: "marifu-water-map",
@@ -545,6 +544,55 @@ window.moveHydrant = async function(id) {
     alert("保存できませんでした：" + error.message);
   }
 };
+  window.deleteHydrant = async function(id) {
+  if (!auth.currentUser) {
+    alert("先にログインしてください");
+    return;
+  }
+
+  try {
+    const memberSnap = await getDoc(
+      doc(db, "members", auth.currentUser.uid)
+    );
+
+    if (!memberSnap.exists() ||
+        memberSnap.data().approved !== true) {
+      alert("承認された団員だけが削除できます");
+      return;
+    }
+
+    const waterSnap = await getDoc(
+      doc(db, "water_sources", id)
+    );
+
+    if (!waterSnap.exists()) {
+      alert("この水利情報は見つかりません");
+      return;
+    }
+
+    const name = waterSnap.data().name || "消防水利";
+
+    if (!confirm(name + " を削除しますか？")) {
+      return;
+    }
+
+    if (!confirm(
+      "最終確認です。\n" +
+      name + " を完全に削除します。\n" +
+      "元に戻せません。本当によろしいですか？"
+    )) {
+      return;
+    }
+
+    await deleteDoc(doc(db, "water_sources", id));
+
+    alert(name + " を削除しました");
+    window.location.reload();
+
+  } catch (error) {
+    alert("削除できませんでした：" + error.message);
+  }
+};
   async function loadWaterSources() {
   try {
     const snapshot = await getDocs(collection(db, "water_sources"));
@@ -581,7 +629,10 @@ if (!Number.isFinite(lat) || !Number.isFinite(lng) ||
  status === "3" ? "使用不可" : "使用可能") +
   '<br><button type="button" onclick="editHydrant(\'' + doc.id + '\', \'' + (data.name || "").replace(/'/g, "\\'") + '\')">訂正</button>' +
 '<br><button type="button" onclick="moveHydrant(\'' + doc.id + '\')">位置訂正</button>'+
-'<br><button type="button" onclick="editStatus(\'' + doc.id + '\')">使用状態訂正</button>'
+'<br><button type="button" onclick="editStatus(\'' + doc.id + '\')">使用状態訂正</button>'+
+ '<br><button type="button" onclick="deleteHydrant(\'' + doc.id + '\')">削除</button>'
+
+③ まだ保存しないでください。        
 );
  　　　console.log("消火栓を地図に追加:", data.name);
     });
