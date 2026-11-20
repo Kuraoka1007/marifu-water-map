@@ -436,6 +436,10 @@ document.getElementById("importKmlButton").addEventListener("click", () => {
   document.getElementById("kmlFileInput").click();
 });
 document.getElementById("kmlFileInput").addEventListener("change", async (event) => {
+ if (!isAdminUser) {
+  alert("KMLの取り込みは分団長だけが実行できます");
+  return;
+}
   const file = event.target.files[0];
   if (!file) return;
 
@@ -494,6 +498,12 @@ const newRecords = importRecords.filter(
 );
 
 alert("新しく登録できる地点：" + newRecords.length + "か所");
+if (importRecords.length !== 629) {
+  alert("KMLのデータ件数が629か所ではありません。処理を中止します。");
+  return;
+}
+
+alert("今回の新規登録対象：" + newRecords.length + "か所");
   let validCount = 0;
 
 for (const place of placemarks) {
