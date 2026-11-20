@@ -165,8 +165,38 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 const db = getFirestore(app);
-document.getElementById("approveMemberButton").addEventListener("click", () => {
-  alert("団員承認ボタンが押されました");
+document.getElementById("approveMemberButton").addEventListener("click", async () => {
+  if (!auth.currentUser) return;
+
+  try {
+    const adminSnap = await getDoc(
+      doc(db, "members", auth.currentUser.uid)
+    );
+
+    if (!adminSnap.exists() ||
+        adminSnap.data().role !== "admin" ||
+        adminSnap.data().approved !== true) {
+      alert("管理者だけが利用できます");
+      return;
+    }
+
+    const snapshot = await getDocs(collection(db, "members"));
+    const pending = [];
+
+    snapshot.forEach((member) => {
+      if (member.data().approved !== true) {
+        pending.push(member.data().name || member.id);
+      }
+    });
+
+    if (pending.length === 0) {
+      alert("承認待ちの団員はいません");
+    } else {
+      alert("承認待ちの団員：\n" + pending.join("\n"));
+    }
+  } catch (error) {
+    alert("団員情報を取得できませんでした：" + error.message);
+  }
 });
   document.getElementById("logoutButton").addEventListener("click", async () => {
   try {
