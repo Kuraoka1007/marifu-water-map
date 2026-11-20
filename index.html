@@ -454,12 +454,33 @@ document.getElementById("kmlFileInput").addEventListener("change", async (event)
   }
 
   const placemarks = kmlDoc.getElementsByTagName("Placemark");
-const first = placemarks[0];
+  let validCount = 0;
+
+for (const place of placemarks) {
+  const name = place.getElementsByTagName("name")[0]?.textContent?.trim() || "";
+  const point = place.getElementsByTagName("Point")[0];
+  const coordinates = point?.getElementsByTagName("coordinates")[0]?.textContent?.trim() || "";
+
+  const [lng, lat] = coordinates.split(",").map(Number);
+
+  if (name && coordinates && Number.isFinite(lat) && Number.isFinite(lng)) {
+    validCount++;
+  }
+}
+
+alert("番号と位置情報が確認できた地点：" + validCount + "か所");
+  
+  const first = placemarks[0];
 
 if (first) {
   const name = first.getElementsByTagName("name")[0]?.textContent || "";
   const coordinates = first.getElementsByTagName("coordinates")[0]?.textContent || "";
+  const [lng, lat] = coordinates.trim().split(",").map(Number);
 
+console.log("消火栓番号:", name);
+console.log("緯度:", lat);
+console.log("経度:", lng);
+  
   alert("最初の消火栓番号：" + name +
         "\n位置情報：" + coordinates.trim());
 }
