@@ -286,7 +286,7 @@ document.getElementById("registerButton").addEventListener("click", async () => 
     try {
       const memberSnap = await getDoc(doc(db, "members", user.uid));
 
-      if (memberSnap.exists()) {
+      if (memberSnap.exists() && memberSnap.data().approved === true) {
         document.getElementById("loginButton").textContent = "ログイン済み";
         loadWaterSources();
       } else {
