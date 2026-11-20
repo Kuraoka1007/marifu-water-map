@@ -514,7 +514,28 @@ if (!importConfirmed) {
   alert("取り込み準備を中止しました");
   return;
 }
- const testRecord = newRecords[0];
+ async function createWaterSourceIfAbsent(record) {
+  const recordRef = doc(db, importCollection, record.importId);
+
+  return await runTransaction(db, async (transaction) => {
+    const existing = await transaction.get(recordRef);
+
+    if (existing.exists()) {
+      return false;
+    }
+
+    transaction.set(recordRef, {
+      name: record.name,
+      type: record.type,
+      status: record.status,
+      lat: record.lat,
+      lng: record.lng
+    });
+
+    return true;
+  });
+}
+  const testRecord = newRecords[0];
 
 if (testRecord) {
   console.log("登録テスト対象:", testRecord);
