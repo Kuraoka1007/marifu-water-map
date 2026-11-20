@@ -535,6 +535,27 @@ if (!importConfirmed) {
     return true;
   });
 }
+  const testRecords = newRecords.slice(0, 10);
+const registerTen = confirm(
+  "未登録の消火栓を最大10か所登録します。\nよろしいですか？"
+);
+
+if (registerTen) {
+  let successCount = 0;
+
+  for (const record of testRecords) {
+    try {
+      const created = await createWaterSourceIfAbsent(record);
+      if (created) successCount++;
+    } catch (error) {
+      console.error("登録エラー:", record.name, error);
+    }
+  }
+
+  alert(successCount + "か所を新しく登録しました");
+  return;
+}
+  console.log("10か所の登録テスト対象:", testRecords);
   const testRecord = newRecords[0];
 
 if (testRecord) {
@@ -546,25 +567,7 @@ if (testRecord) {
     "経度：" + testRecord.lng
   );
 }
-  if (testRecord && testRecord.name === "191") {
-  const confirmed = confirm(
-    "消火栓番号191をFirebaseに1か所だけ登録します。\n" +
-    "よろしいですか？"
-  );
-
-  if (confirmed) {
-    try {
-      const created = await createWaterSourceIfAbsent(testRecord);
-
-      alert(created
-        ? "消火栓191を登録しました"
-        : "消火栓191は登録済みです");
-    } catch (error) {
-      console.error(error);
-      alert("登録エラー：" + error.message);
-    }
-  }
-}
+  
   let validCount = 0;
 
 for (const place of placemarks) {
