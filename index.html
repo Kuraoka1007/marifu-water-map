@@ -428,8 +428,10 @@ await setDoc(doc(db, "members", result.user.uid), {
     alert("新規登録できませんでした：" + error.message);
   }
 });
+ let isAdminUser = false; 
   onAuthStateChanged(auth, async (user) => {
-  if (user) {
+ isAdminUser = false;
+    if (user) {
     document.getElementById("loginButton").textContent = "確認中...";
 
     try {
@@ -437,6 +439,7 @@ await setDoc(doc(db, "members", result.user.uid), {
 
       if (memberSnap.exists() && memberSnap.data().approved === true) {
       if (memberSnap.data().role === "admin") {
+ isAdminUser = true;
   document.getElementById("approveMemberButton").style.display = "inline-block";
   document.getElementById("revokeMemberButton").style.display = "inline-block";
 }
@@ -631,8 +634,9 @@ if (!Number.isFinite(lat) || !Number.isFinite(lng) ||
   '<br><button type="button" onclick="editHydrant(\'' + doc.id + '\', \'' + (data.name || "").replace(/'/g, "\\'") + '\')">訂正</button>' +
 '<br><button type="button" onclick="moveHydrant(\'' + doc.id + '\')">位置訂正</button>'+
 '<br><button type="button" onclick="editStatus(\'' + doc.id + '\')">使用状態訂正</button>'+
- '<br><button type="button" onclick="deleteHydrant(\'' + doc.id + '\')">削除</button>'
-    
+(isAdminUser
+  ? '<br><button type="button" onclick="deleteHydrant(\'' + doc.id + '\')">削除</button>'
+  : '')
 );
  　　　console.log("消火栓を地図に追加:", data.name);
     });
