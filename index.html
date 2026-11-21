@@ -696,16 +696,7 @@ console.log("経度:", lng);
     alert("保存できませんでした：" + error.message);
   }
 };
- window.moveHydrant = async function(id) {
-  alert("位置訂正モードです。地図上の新しい位置をクリックしてください。");
-
-  map.once("click", function(e) {
-    const lat = e.latlng.lat;
-    const lng = e.latlng.lng;
-
-    alert("新しい位置を選択しました。\n緯度：" + lat + "\n経度：" + lng);
-  });
-};
+ 
  
 window.moveHydrant = async function(id) {
   if (!auth.currentUser) {
