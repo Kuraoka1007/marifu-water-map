@@ -120,8 +120,8 @@ button {
 onclick="alert('ログアウトボタン確認OK')">
 ログアウト
 </button>
-  <button id="addHydrantButton" type="button">消火栓を追加</button>
-　<button id="saveHydrantButton" type="button">消火栓を保存</button>
+<button id="addHydrantButton" type="button" style="display:none;">消火栓を追加</button>
+<button id="saveHydrantButton" type="button" style="display:none;">消火栓を保存</button>
 </div>
 <div id="legend">
   <strong>消防水利の種類</strong><br>
@@ -487,6 +487,7 @@ await setDoc(doc(db, "members", result.user.uid), {
   }
 });
  let isAdminUser = false; 
+　let canEditWaterSources = false;  
 document.getElementById("importKmlButton").addEventListener("click", () => {
   document.getElementById("kmlFileInput").click();
 });
@@ -664,9 +665,15 @@ console.log("経度:", lng);
   
   alert("KMLファイルを読み込みました。登録地点数：" + placemarks.length);
 });
-  onAuthStateChanged(auth, async (user) => {
- isAdminUser = false;
-    document.getElementById("importKmlButton").style.display = "none";
+ onAuthStateChanged(auth, async (user) => {
+  isAdminUser = false;
+  canEditWaterSources = false;
+
+  document.getElementById("importKmlButton").style.display = "none";
+  document.getElementById("addHydrantButton").style.display = "none";
+  document.getElementById("saveHydrantButton").style.display = "none";
+  document.getElementById("approveMemberButton").style.display = "none";
+  document.getElementById("revokeMemberButton").style.display = "none";
     if (user) {
     document.getElementById("loginButton").textContent = "確認中...";
 
@@ -674,6 +681,18 @@ console.log("経度:", lng);
       const memberSnap = await getDoc(doc(db, "members", user.uid));
 
       if (memberSnap.exists() && memberSnap.data().approved === true) {
+const memberRole = memberSnap.data().role;
+
+canEditWaterSources =
+  memberRole === "admin" ||
+  memberRole === "editor" ||
+  memberRole === undefined;
+document.getElementById("addHydrantButton").style.display =
+  canEditWaterSources ? "inline-block" : "none";
+
+document.getElementById("saveHydrantButton").style.display =
+  canEditWaterSources ? "inline-block" : "none";        
+        
       if (memberSnap.data().role === "admin") {
     document.getElementById("importKmlButton").style.display = "inline-block";
  isAdminUser = true;
@@ -889,9 +908,15 @@ if (!Number.isFinite(lat) || !Number.isFinite(lng) ||
   (status === "0" ? "未確認" :
  status === "2" ? "使用注意" :
  status === "3" ? "使用不可" : "使用可能") +
-  '<br><button type="button" onclick="editHydrant(\'' + doc.id + '\', \'' + (data.name || "").replace(/'/g, "\\'") + '\')">訂正</button>' +
-'<br><button type="button" onclick="moveHydrant(\'' + doc.id + '\')">位置訂正</button>'+
-'<br><button type="button" onclick="editStatus(\'' + doc.id + '\')">使用状態訂正</button>'+
+ (canEditWaterSources
+  ? '<br><button type="button" onclick="editHydrant(\'' + doc.id + '\', \'' + (data.name || "").replace(/'/g, "\\'") + '\')">訂正</button>'
+  : '') +
+(canEditWaterSources
+  ? '<br><button type="button" onclick="moveHydrant(\'' + doc.id + '\')">位置訂正</button>'
+  : '') +
+(canEditWaterSources
+  ? '<br><button type="button" onclick="editStatus(\'' + doc.id + '\')">使用状態訂正</button>'
+  : '') +
 (isAdminUser
   ? '<br><button type="button" onclick="deleteHydrant(\'' + doc.id + '\')">削除</button>'
   : '')
