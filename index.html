@@ -261,14 +261,29 @@ document.getElementById("approveMemberButton").addEventListener("click", async (
   }
 
   const member = pending[number - 1];
+const roleChoice = prompt(
+  member.name + " さんの利用権限を選んでください。\n" +
+  "1：閲覧専用（検索・閲覧のみ）\n" +
+  "2：編集可能（追加・訂正もできる）"
+);
 
+if (roleChoice === null) return;
+
+if (roleChoice !== "1" && roleChoice !== "2") {
+  alert("1 または 2 を入力してください");
+  return;
+}
+
+const selectedRole = roleChoice === "1" ? "viewer" : "editor";
+      
   if (!confirm(member.name + " さんを承認しますか？")) {
     return;
   }
 
   await updateDoc(doc(db, "members", member.id), {
-    approved: true
-  });
+  approved: true,
+  role: selectedRole
+});
 
   alert(member.name + " さんを承認しました！");
 }
