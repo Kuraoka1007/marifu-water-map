@@ -470,7 +470,42 @@ document.getElementById("loginButton").addEventListener("click", async () => {
   }
 });
 
-document.getElementById("emailLoginButton").addEventListener("click", async () => {
+document.getElementById("linkEmailButton").addEventListener("click", async () => {
+  const user = auth.currentUser;
+
+  if (!user) {
+    alert("先にGoogleでログインしてください");
+    return;
+  }
+
+  try {
+    const adminSnap = await getDoc(doc(db, "members", user.uid));
+
+    if (!adminSnap.exists() ||
+        adminSnap.data().role !== "admin" ||
+        adminSnap.data().approved !== true) {
+      alert("分団長の管理者アカウントだけが設定できます");
+      return;
+    }
+
+    const password = prompt("メールログイン用の新しいパスワードを入力してください（6文字以上）");
+    if (password === null) return;
+
+    if (password.length < 6) {
+      alert("パスワードは6文字以上にしてください");
+      return;
+    }
+
+    const credential = EmailAuthProvider.credential(user.email, password);
+    await linkWithCredential(user, credential);
+
+    alert("メール認証の追加が完了しました！");
+  } catch (error) {
+    console.error(error);
+    alert("メール認証を追加できませんでした：" + error.code);
+  }
+});
+  document.getElementById("emailLoginButton").addEventListener("click", async () => {
   const email = prompt("メールアドレスを入力してください");
   if (!email) return;
 
