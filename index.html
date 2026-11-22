@@ -979,6 +979,17 @@ function getWaterCache() {
 }
   async function loadWaterSources() {
   try {
+    const cached = getWaterCache();
+
+    if (cached && Array.isArray(cached.sources)) {
+      console.log(
+        "スマホに保存された水利データ:",
+        cached.sources.length,
+        "件"
+      );
+      console.log("保存日時:", cached.savedAt);
+    }
+
     const snapshot = await getDocs(collection(db, "water_sources"));
 searchWaterSources = snapshot.docs.map(item => ({
   id: item.id,
