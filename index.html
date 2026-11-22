@@ -971,8 +971,7 @@ waterSourceMarkers.set(doc.id, marker);
 });
 　
     if (markers.length > 0) {
-  const group = L.featureGroup(markers);
-  map.fitBounds(group.getBounds().pad(0.2), { maxZoom: 17 });
+  map.setView([34.17, 132.22], 15);
 }
   } catch (error) {
     console.error(error);
