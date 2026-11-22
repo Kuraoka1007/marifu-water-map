@@ -214,7 +214,17 @@ function showLocation() {
 </script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  EmailAuthProvider,
+  linkWithCredential,
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
 import { getFirestore, collection, getDocs, getDoc, addDoc, doc, updateDoc, setDoc, runTransaction, deleteDoc } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
 const firebaseConfig = {
   apiKey: "AIzaSyCJNMjasMqGRKZbELDZlhgsuqMbuSTjeV4",
