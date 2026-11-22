@@ -845,7 +845,8 @@ window.moveHydrant = async function(id) {
   }
 };
  let searchWaterSources = [];
-　const waterSourceMarkers = new Map();
+　let searchHighlight = null;
+  const waterSourceMarkers = new Map();
   document.getElementById("searchButton").addEventListener("click", () => {
   const number = document.getElementById("searchNumber").value.trim();
 
@@ -863,7 +864,22 @@ window.moveHydrant = async function(id) {
     return;
   }
 
-  map.setView([Number(found.lat), Number(found.lng)], 20);
+  map.setView([Number(found.lat), Number(found.lng)], 18);
+if (searchHighlight) {
+  map.removeLayer(searchHighlight);
+}
+
+searchHighlight = L.circleMarker(
+  [Number(found.lat), Number(found.lng)],
+  {
+    radius: 22,
+    color: "yellow",
+    weight: 5,
+    fillOpacity: 0,
+    interactive: false
+  }
+).addTo(map);
+    
    const marker = waterSourceMarkers.get(found.id);
 
 if (marker) {
