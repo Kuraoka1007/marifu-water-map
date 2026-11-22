@@ -951,7 +951,32 @@ if (marker) {
   marker.openPopup();
 } 
 });
-  
+
+  const WATER_CACHE_KEY = "marifu_water_sources_v1";
+
+function saveWaterCache(data) {
+  try {
+    localStorage.setItem(
+      WATER_CACHE_KEY,
+      JSON.stringify({
+        savedAt: new Date().toISOString(),
+        sources: data
+      })
+    );
+  } catch (error) {
+    console.error("水利データの保存に失敗:", error);
+  }
+}
+
+function getWaterCache() {
+  try {
+    const saved = localStorage.getItem(WATER_CACHE_KEY);
+    return saved ? JSON.parse(saved) : null;
+  } catch (error) {
+    console.error("保存データの読み込みに失敗:", error);
+    return null;
+  }
+}
   async function loadWaterSources() {
   try {
     const snapshot = await getDocs(collection(db, "water_sources"));
@@ -959,6 +984,7 @@ searchWaterSources = snapshot.docs.map(item => ({
   id: item.id,
   ...item.data()
 }));
+    saveWaterCache(searchWaterSources);
     snapshot.forEach((doc) => {
       const data = doc.data();
       const type = data.type || "1";
