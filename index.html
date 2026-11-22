@@ -996,8 +996,9 @@ searchWaterSources = snapshot.docs.map(item => ({
   ...item.data()
 }));
     saveWaterCache(searchWaterSources);
-    snapshot.forEach((doc) => {
-      const data = doc.data();
+    searchWaterSources.forEach((item) => {
+  const doc = { id: item.id };
+  const data = item;
       const type = data.type || "1";
 　　　　const status = data.status || "0";
      const markerWeight = status === "3" ? 6 : status === "2" ? 4 : 2;
