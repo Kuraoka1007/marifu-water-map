@@ -863,7 +863,7 @@ window.moveHydrant = async function(id) {
     return;
   }
 
-  map.setView([Number(found.lat), Number(found.lng)], 16);
+  map.setView([Number(found.lat), Number(found.lng)], 14);
    const marker = waterSourceMarkers.get(found.id);
 
 if (marker) {
