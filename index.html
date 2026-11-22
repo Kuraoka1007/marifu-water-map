@@ -977,28 +977,12 @@ function getWaterCache() {
     return null;
   }
 }
-  async function loadWaterSources() {
-  try {
-    const cached = getWaterCache();
+  function displayWaterSources(sources) {
+  searchWaterSources = sources;
 
-    if (cached && Array.isArray(cached.sources)) {
-      console.log(
-        "スマホに保存された水利データ:",
-        cached.sources.length,
-        "件"
-      );
-      console.log("保存日時:", cached.savedAt);
-    }
-
-    const snapshot = await getDocs(collection(db, "water_sources"));
-searchWaterSources = snapshot.docs.map(item => ({
-  id: item.id,
-  ...item.data()
-}));
-    saveWaterCache(searchWaterSources);
-    searchWaterSources.forEach((item) => {
-  const doc = { id: item.id };
-  const data = item;
+  sources.forEach((item) => {
+    const doc = { id: item.id };
+    const data = item;
       const type = data.type || "1";
 　　　　const status = data.status || "0";
      const markerWeight = status === "3" ? 6 : status === "2" ? 4 : 2;
@@ -1040,10 +1024,34 @@ if (!Number.isFinite(lat) || !Number.isFinite(lng) ||
   ? '<br><button type="button" onclick="deleteHydrant(\'' + doc.id + '\')">削除</button>'
   : '')
 );
-waterSourceMarkers.set(doc.id, marker); 
-      console.log("消火栓を地図に追加:", data.name);
-    });
-　const markers = [];
+waterSourceMarkers.set(doc.id, marker);
+console.log("消火栓を地図に追加:", data.name);
+});
+ }
+    async function loadWaterSources() {
+  try {
+    const cached = getWaterCache();
+
+    if (cached && Array.isArray(cached.sources)) {
+      console.log(
+        "スマホに保存された水利データ:",
+        cached.sources.length,
+        "件"
+      );
+      console.log("保存日時:", cached.savedAt);
+    }
+
+    const snapshot = await getDocs(collection(db, "water_sources"));
+searchWaterSources = snapshot.docs.map(item => ({
+  id: item.id,
+  ...item.data()
+}));
+    saveWaterCache(searchWaterSources);
+   
+   
+}
+displayWaterSources(searchWaterSources);
+    const markers = [];
 　console.log("マーカー確認開始");
     console.log("地図上のマーカー確認開始");
     map.eachLayer((layer) => {
@@ -1059,10 +1067,27 @@ waterSourceMarkers.set(doc.id, marker);
     if (markers.length > 0) {
   map.setView([34.17, 132.22], 13);
 }
-  } catch (error) {
-    console.error(error);
-    alert("水利情報を読み込めませんでした。団員登録を確認してください。");
+ } catch (error) {
+  console.error("Firebase読み込みエラー:", error);
+
+  const cached = getWaterCache();
+
+  if (cached && Array.isArray(cached.sources) && cached.sources.length > 0) {
+    displayWaterSources(cached.sources);
+
+    alert(
+      "Firebaseから最新データを取得できませんでした。\n" +
+      "スマホに保存された水利情報を表示します。\n" +
+      "保存日時：" + new Date(cached.savedAt).toLocaleString("ja-JP") +
+      "\n※最新情報ではない可能性があります。"
+    );
+  } else {
+    alert(
+      "水利情報を読み込めませんでした。\n" +
+      "保存済みデータもありません。"
+    );
   }
+}
 }
 </script>
 <input type="file" id="kmlFileInput" accept=".kml,.kmz" style="display:none">
