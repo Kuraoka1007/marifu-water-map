@@ -1,4 +1,4 @@
-
+map.setView([Number(found.lat), Number(found.lng)],
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -864,7 +864,7 @@ window.moveHydrant = async function(id) {
     return;
   }
 
-  map.setView([Number(found.lat), Number(found.lng)], 18);
+  map.setView([Number(found.lat), Number(found.lng)], 14);
 if (searchHighlight) {
   map.removeLayer(searchHighlight);
 }
