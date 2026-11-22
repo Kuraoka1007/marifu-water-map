@@ -1046,10 +1046,12 @@ searchWaterSources = snapshot.docs.map(item => ({
   id: item.id,
   ...item.data()
 }));
-    saveWaterCache(searchWaterSources);
-   
-   
+       saveWaterCache(searchWaterSources);
+
+} catch (error) {
+    console.error("水利データ取得エラー:", error);
 }
+
 displayWaterSources(searchWaterSources);
     const markers = [];
 　console.log("マーカー確認開始");
