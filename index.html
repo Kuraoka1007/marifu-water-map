@@ -1245,16 +1245,7 @@ const cacheIsValid =
   cached.sources.length > 0 &&
   cached.version === currentVersion;
 
-
-    const cacheIsValid =
-      cached &&
-      Array.isArray(cached.sources) &&
-      cached.sources.length > 0 &&
-      Number.isFinite(cacheTime) &&
-      Date.now() >= cacheTime &&
-      Date.now() - cacheTime < WATER_CACHE_DURATION;
-
-    if (cacheIsValid) {
+        if (cacheIsValid) {
       console.log("保存済みの水利データを使用します");
       searchWaterSources = cached.sources;
       displayWaterSources(searchWaterSources);
