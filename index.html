@@ -121,7 +121,7 @@ button {
   🔍 検索
 </button>
   
-<button type="button" id="refreshWaterButton">
+<button type="button" id="refreshWaterButton" style="display:none">
   🔄 最新データに更新
 </button>
 
@@ -742,6 +742,7 @@ console.log("経度:", lng);
   canEditWaterSources = false;
 
   document.getElementById("importKmlButton").style.display = "none";
+  document.getElementById("refreshWaterButton").style.display = "none"; 
   document.getElementById("deleteKmlButton").style.display = "none"; 
   document.getElementById("addHydrantButton").style.display = "none";
   document.getElementById("saveHydrantButton").style.display = "none";
@@ -769,6 +770,7 @@ document.getElementById("saveHydrantButton").style.display =
       if (memberSnap.data().role === "admin") {
     document.getElementById("importKmlButton").style.display = "inline-block";
  isAdminUser = true;
+ document.getElementById("refreshWaterButton").style.display = "inline-block";       
  document.getElementById("deleteKmlButton").style.display = "inline-block";       
   document.getElementById("approveMemberButton").style.display = "inline-block";
   document.getElementById("revokeMemberButton").style.display = "inline-block";
@@ -1093,7 +1095,47 @@ waterSourceMarkers.set(doc.id, marker);
 console.log("消火栓を地図に追加:", data.name);
 });
  }
-    async function loadWaterSources() {
+  
+  
+document.getElementById("refreshWaterButton").addEventListener("click", async () => {
+  const button = document.getElementById("refreshWaterButton");
+
+  if (!auth.currentUser) {
+    alert("ログインしてから更新してください");
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = "更新中...";
+
+  try {
+    const snapshot = await getDocs(collection(db, "water_sources"));
+
+    const sources = snapshot.docs.map(item => ({
+      id: item.id,
+      ...item.data()
+    }));
+
+    saveWaterCache(sources);
+
+    alert(
+      "最新データを取得しました。\n" +
+      "水利データ：" + sources.length + "件\n" +
+      "地図を再表示します。"
+    );
+
+    window.location.reload();
+
+  } catch (error) {
+    console.error("更新エラー:", error);
+    alert("更新できませんでした：" + error.message);
+  } finally {
+    button.disabled = false;
+    button.textContent = "🔄 最新データに更新";
+  }
+});
+
+  async function loadWaterSources() {
   try {
     const cached = getWaterCache();
     
