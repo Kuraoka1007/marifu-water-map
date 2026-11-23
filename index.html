@@ -469,15 +469,29 @@ if (!["1", "2", "3"].includes(status)) {
   }
 
   try {
-    await addDoc(collection(db, "water_sources"), {
-      name: name.trim(),
-      type: type,
-     　status: status,
-      lat: location.lat,
-      lng: location.lng
-    });
+    
+const batch = writeBatch(db);
 
-        window.newHydrantLocation = null;
+const newWaterRef = doc(collection(db, "water_sources"));
+
+batch.set(newWaterRef, {
+  name: name.trim(),
+  type: type,
+  status: status,
+  lat: location.lat,
+  lng: location.lng
+});
+
+batch.update(doc(db, "water_metadata", "version"), {
+  updatedAt: serverTimestamp()
+});
+
+await batch.commit();
+
+localStorage.removeItem(WATER_CACHE_KEY);
+
+window.newHydrantLocation = null;
+
     alert("消火栓を保存しました！");
     window.location.reload();
   } catch (error) {
