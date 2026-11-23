@@ -839,7 +839,50 @@ window.editHydrant = async function(id, oldName) {
   }
 };
 
-  window.editStatus = async function(id) {
+  
+window.editStatus = async function(id) {
+  if (!auth.currentUser) {
+    alert("先にログインしてください");
+    return;
+  }
+
+  const status = prompt(
+    "新しい使用状態を選んでください\n" +
+    "1：使用可能\n" +
+    "2：使用注意\n" +
+    "3：使用不可"
+  );
+
+  if (status === null) return;
+
+  if (!["1", "2", "3"].includes(status)) {
+    alert("1・2・3のいずれかを入力してください");
+    return;
+  }
+
+  try {
+    const batch = writeBatch(db);
+
+    batch.update(doc(db, "water_sources", id), {
+      status: status
+    });
+
+    batch.update(doc(db, "water_metadata", "version"), {
+      updatedAt: serverTimestamp()
+    });
+
+    await batch.commit();
+
+    localStorage.removeItem(WATER_CACHE_KEY);
+
+    alert("使用状態を保存しました！");
+    window.location.reload();
+
+  } catch (error) {
+    alert("保存できませんでした：" + error.message);
+  }
+};
+ {
   if (!auth.currentUser) {
     alert("先にログインしてください");
     return;
