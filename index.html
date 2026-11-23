@@ -1089,12 +1089,13 @@ if (marker) {
   const WATER_CACHE_KEY = "marifu_water_sources_v1";
   const WATER_CACHE_DURATION = 24 * 60 * 60 * 1000;
 
-function saveWaterCache(data) {
+function saveWaterCache(data, version = null) {
   try {
     localStorage.setItem(
       WATER_CACHE_KEY,
       JSON.stringify({
         savedAt: new Date().toISOString(),
+        version: version,
         sources: data
       })
     );
