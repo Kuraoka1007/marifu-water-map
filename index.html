@@ -1051,16 +1051,35 @@ document.getElementById("deleteKmlButton").addEventListener("click", async () =>
 
     let deleted = 0;
 
-    for (const item of targets) {
-      try {
-        await deleteDoc(doc(db, "water_sources", item.id));
-        deleted++;
-      } catch (error) {
-        alert("削除を停止しました。\n削除済み：" + deleted +
-              " 件\nエラー：" + error.message);
-        return;
-      }
-    }
+   
+const batchSize = 200;
+
+for (let i = 0; i < targets.length; i += batchSize) {
+  const batch = writeBatch(db);
+  const group = targets.slice(i, i + batchSize);
+
+  for (const item of group) {
+    batch.delete(doc(db, "water_sources", item.id));
+  }
+
+  batch.update(doc(db, "water_metadata", "version"), {
+    updatedAt: serverTimestamp()
+  });
+
+  try {
+    await batch.commit();
+    deleted += group.length;
+  } catch (error) {
+    alert(
+      "削除を停止しました。\n" +
+      "削除済み：" + deleted + " 件\n" +
+      "エラー：" + error.message
+    );
+    return;
+  }
+}
+
+localStorage.removeItem(WATER_CACHE_KEY);
 
     alert("KMLデータ " + deleted + " 件を削除しました");
     window.location.reload();
