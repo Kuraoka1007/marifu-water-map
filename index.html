@@ -738,6 +738,7 @@ console.log("経度:", lng);
   canEditWaterSources = false;
 
   document.getElementById("importKmlButton").style.display = "none";
+  document.getElementById("deleteKmlButton").style.display = "none"; 
   document.getElementById("addHydrantButton").style.display = "none";
   document.getElementById("saveHydrantButton").style.display = "none";
   document.getElementById("approveMemberButton").style.display = "none";
@@ -764,6 +765,7 @@ document.getElementById("saveHydrantButton").style.display =
       if (memberSnap.data().role === "admin") {
     document.getElementById("importKmlButton").style.display = "inline-block";
  isAdminUser = true;
+ document.getElementById("deleteKmlButton").style.display = "inline-block";       
   document.getElementById("approveMemberButton").style.display = "inline-block";
   document.getElementById("revokeMemberButton").style.display = "inline-block";
 }
