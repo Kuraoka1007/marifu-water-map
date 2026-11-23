@@ -1208,7 +1208,26 @@ if (!auth.currentUser || !isAdminUser) {
 
   async function loadWaterSources() {
   try {
+    
+  try {
     const cached = getWaterCache();
+
+    const versionSnap = await getDoc(
+      doc(db, "water_metadata", "version")
+    );
+
+    if (!versionSnap.exists()) {
+      throw new Error("水利データの更新情報がありません");
+    }
+
+    const updatedAt = versionSnap.data().updatedAt;
+
+    if (!updatedAt || typeof updatedAt.toMillis !== "function") {
+      throw new Error("更新日時を読み取れません");
+    }
+
+    const currentVersion = updatedAt.toMillis();
+
     
     const cacheTime = cached
       ? new Date(cached.savedAt).getTime()
