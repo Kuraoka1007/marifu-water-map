@@ -672,7 +672,34 @@ if (!importConfirmed) {
   alert("取り込み準備を中止しました");
   return;
 }
- async function createWaterSourceIfAbsent(record) {
+ 
+async function createWaterSourceIfAbsent(record) {
+  const recordRef = doc(db, importCollection, record.importId);
+  const versionRef = doc(db, "water_metadata", "version");
+
+  return await runTransaction(db, async (transaction) => {
+    const existing = await transaction.get(recordRef);
+
+    if (existing.exists()) {
+      return false;
+    }
+
+    transaction.set(recordRef, {
+      name: record.name,
+      type: record.type,
+      status: record.status,
+      lat: record.lat,
+      lng: record.lng
+    });
+
+    transaction.update(versionRef, {
+      updatedAt: serverTimestamp()
+    });
+
+    return true;
+  });
+}
+
   const recordRef = doc(db, importCollection, record.importId);
 
   return await runTransaction(db, async (transaction) => {
