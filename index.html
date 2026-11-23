@@ -1100,10 +1100,12 @@ console.log("消火栓を地図に追加:", data.name);
 document.getElementById("refreshWaterButton").addEventListener("click", async () => {
   const button = document.getElementById("refreshWaterButton");
 
-  if (!auth.currentUser) {
-    alert("ログインしてから更新してください");
-    return;
-  }
+ 
+if (!auth.currentUser || !isAdminUser) {
+  alert("最新データの更新は分団長（管理者）だけができます");
+  return;
+}
+
 
   button.disabled = true;
   button.textContent = "更新中...";
