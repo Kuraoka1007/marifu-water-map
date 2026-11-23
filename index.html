@@ -1217,9 +1217,7 @@ saveWaterCache(sources, currentVersion);
 
   async function loadWaterSources() {
   try {
-    
-  try {
-    const cached = getWaterCache();
+　   const cached = getWaterCache();
 
     const versionSnap = await getDoc(
       doc(db, "water_metadata", "version")
