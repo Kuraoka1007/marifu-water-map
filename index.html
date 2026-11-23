@@ -673,6 +673,7 @@ if (!importConfirmed) {
   return;
 }
  
+
 async function createWaterSourceIfAbsent(record) {
   const recordRef = doc(db, importCollection, record.importId);
   const versionRef = doc(db, "water_metadata", "version");
@@ -700,26 +701,9 @@ async function createWaterSourceIfAbsent(record) {
   });
 }
 
-  const recordRef = doc(db, importCollection, record.importId);
+ 
 
-  return await runTransaction(db, async (transaction) => {
-    const existing = await transaction.get(recordRef);
-
-    if (existing.exists()) {
-      return false;
-    }
-
-    transaction.set(recordRef, {
-      name: record.name,
-      type: record.type,
-      status: record.status,
-      lat: record.lat,
-      lng: record.lng
-    });
-
-    return true;
-  });
-}
+ 
   const testRecords = newRecords;
 const registerTen = confirm(
   "未登録の消火栓 " + testRecords.length +
