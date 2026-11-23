@@ -954,10 +954,21 @@ window.editStatus = async function(id) {
       return;
     }
 
-    await deleteDoc(doc(db, "water_sources", id));
+   
+const batch = writeBatch(db);
 
-    alert(name + " を削除しました");
-    window.location.reload();
+batch.delete(doc(db, "water_sources", id));
+
+batch.update(doc(db, "water_metadata", "version"), {
+  updatedAt: serverTimestamp()
+});
+
+await batch.commit();
+
+localStorage.removeItem(WATER_CACHE_KEY);
+
+alert(name + " を削除しました");
+window.location.reload();
 
   } catch (error) {
     alert("削除できませんでした：" + error.message);
