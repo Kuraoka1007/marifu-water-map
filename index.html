@@ -807,52 +807,36 @@ document.getElementById("saveHydrantButton").style.display =
     document.getElementById("loginButton").textContent = "Googleでログイン";
   }
 });
- window.editHydrant = async function(id, oldName) {
-  const newName = prompt("新しい消火栓の名前を入力してください", oldName);
+
+window.editHydrant = async function(id, oldName) {
+  const newName = prompt(
+    "新しい消火栓の名前を入力してください",
+    oldName
+  );
 
   if (newName === null || newName.trim() === "") return;
 
   try {
-    await updateDoc(doc(db, "water_sources", id), {
+    const batch = writeBatch(db);
+
+    batch.update(doc(db, "water_sources", id), {
       name: newName.trim()
     });
+
+    batch.update(doc(db, "water_metadata", "version"), {
+      updatedAt: serverTimestamp()
+    });
+
+    await batch.commit();
+
+    localStorage.removeItem(WATER_CACHE_KEY);
+
     alert("消火栓の名前を保存しました");
     location.reload();
+
   } catch (error) {
     alert("保存できませんでした：" + error.message);
   }
-};
- 
- 
-window.moveHydrant = async function(id) {
-  if (!auth.currentUser) {
-    alert("先にGoogleでログインしてください");
-    return;
-  }
-
-  alert("地図上の新しい位置をクリックしてください");
-
-  map.once("click", async function(e) {
-    const lat = e.latlng.lat;
-    const lng = e.latlng.lng;
-
-    if (!confirm("この位置に変更して保存しますか？")) {
-      return;
-    }
-
-    try {
-      await updateDoc(doc(db, "water_sources", id), {
-        lat: lat,
-        lng: lng
-      });
-
-      alert("新しい位置を保存しました！");
-      window.location.reload();
-
-    } catch (error) {
-      alert("保存できませんでした：" + error.message);
-    }
-  });
 };
 
   window.editStatus = async function(id) {
