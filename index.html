@@ -914,6 +914,61 @@ window.moveHydrant = async function(id) {
     alert("削除できませんでした：" + error.message);
   }
 };
+ 
+document.getElementById("deleteKmlButton").addEventListener("click", async () => {
+  if (!auth.currentUser || !isAdminUser) {
+    alert("管理者だけが削除できます");
+    return;
+  }
+
+  try {
+    const snapshot = await getDocs(collection(db, "water_sources"));
+
+    const targets = snapshot.docs.filter(item =>
+      item.id.startsWith("marifu_kml_")
+    );
+
+    if (targets.length === 0) {
+      alert("削除対象のKMLデータはありません");
+      return;
+    }
+
+    alert("削除対象は " + targets.length + " 件です");
+
+    if (!confirm(
+      "KMLデータ " + targets.length +
+      " 件を削除します。\n本当によろしいですか？"
+    )) {
+      return;
+    }
+
+    if (!confirm(
+      "最終確認です。\n削除したデータは元に戻せません。\n削除しますか？"
+    )) {
+      return;
+    }
+
+    let deleted = 0;
+
+    for (const item of targets) {
+      try {
+        await deleteDoc(doc(db, "water_sources", item.id));
+        deleted++;
+      } catch (error) {
+        alert("削除を停止しました。\n削除済み：" + deleted +
+              " 件\nエラー：" + error.message);
+        return;
+      }
+    }
+
+    alert("KMLデータ " + deleted + " 件を削除しました");
+    window.location.reload();
+
+  } catch (error) {
+    alert("削除処理エラー：" + error.message);
+  }
+});
+ 
  let searchWaterSources = [];
 　let searchHighlight = null;
   const waterSourceMarkers = new Map();
