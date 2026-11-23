@@ -1268,7 +1268,29 @@ searchWaterSources = snapshot.docs.map(item => ({
   ...item.data()
 }));
         
+
+const versionCheckSnap = await getDoc(
+  doc(db, "water_metadata", "version")
+);
+
+if (!versionCheckSnap.exists()) {
+  throw new Error("更新情報が見つかりません");
+}
+
+const checkedAt = versionCheckSnap.data().updatedAt;
+
+if (!checkedAt || typeof checkedAt.toMillis !== "function") {
+  throw new Error("更新日時を確認できません");
+}
+
+if (checkedAt.toMillis() !== currentVersion) {
+  throw new Error(
+    "水利データの読み込み中に更新がありました。再読み込みしてください。"
+  );
+}
+
 saveWaterCache(searchWaterSources, currentVersion);
+
 
 
     displayWaterSources(searchWaterSources);
