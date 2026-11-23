@@ -1233,7 +1233,17 @@ if (!auth.currentUser || !isAdminUser) {
       ...item.data()
     }));
 
-    saveWaterCache(sources);
+   
+const versionSnapshot = await getDoc(
+  doc(db, "water_metadata", "version")
+);
+
+const currentVersion = versionSnapshot.exists()
+  ? versionSnapshot.data().updatedAt.toMillis()
+  : null;
+
+saveWaterCache(sources, currentVersion);
+
 
     alert(
       "最新データを取得しました。\n" +
