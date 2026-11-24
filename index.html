@@ -131,6 +131,9 @@ button {
   <button type="button" id="deleteKmlButton" style="display:none">
   KMLデータ削除
 </button>
+  <button type="button" id="backupWaterButton" style="display:none;">
+  💾 水利データ保存
+</button>
   <button onclick="showLocation()">現在地</button>
   <button onclick="map.setView([34.17,132.22],16)">駅前周辺</button>
   <button id="loginButton" type="button" style="display:none;">Googleでログイン</button>
@@ -834,7 +837,8 @@ document.getElementById("saveHydrantButton").style.display =
       if (memberSnap.data().role === "admin") {
     document.getElementById("importKmlButton").style.display = "inline-block";
  isAdminUser = true;
- document.getElementById("refreshWaterButton").style.display = "inline-block";       
+ document.getElementById("backupWaterButton").style.display = "inline-block";
+document.getElementById("refreshWaterButton").style.display = "inline-block";       
  document.getElementById("deleteKmlButton").style.display = "inline-block";       
   document.getElementById("approveMemberButton").style.display = "inline-block";
   document.getElementById("revokeMemberButton").style.display = "inline-block";
@@ -874,7 +878,8 @@ localStorage.removeItem(WATER_CACHE_KEY);
   ) {
     isAdminUser = false;
     canEditWaterSources = false;
-
+    document.getElementById("backupWaterButton").style.display = "none";
+    
     document.getElementById("loginButton").textContent =
       "オフライン閲覧中";
 
@@ -1335,6 +1340,62 @@ saveWaterCache(sources, currentVersion);
   }
 });
 
+  document.getElementById("backupWaterButton")
+  .addEventListener("click", async () => {
+
+  if (!isAdminUser || !auth.currentUser) {
+    alert("管理者専用の機能です");
+    return;
+  }
+
+  if (!confirm("水利データをバックアップしますか？")) {
+    return;
+  }
+
+  try {
+    const snapshot = await getDocs(
+      collection(db, "water_sources")
+    );
+
+    if (snapshot.metadata.fromCache) {
+      throw new Error("最新データを取得できません");
+    }
+
+    const data = snapshot.docs.map(item => ({
+      ...item.data(),
+      id: item.id
+    }));
+
+    const backup = {
+      savedAt: new Date().toISOString(),
+      count: data.length,
+      sources: data
+    };
+
+    const blob = new Blob(
+      [JSON.stringify(backup, null, 2)],
+      { type: "application/json" }
+    );
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+
+    a.href = url;
+    a.download = "麻里布分団_水利バックアップ_" +
+      new Date().toISOString().replace(/[:.]/g, "-") +
+      ".json";
+
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+    alert(data.length + "件の水利データを保存しました");
+
+  } catch (error) {
+    alert("バックアップに失敗しました：" + error.message);
+  }
+});
   async function loadWaterSources() {
   try {
 　   const cached = getWaterCache();
