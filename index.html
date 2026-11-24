@@ -415,6 +415,13 @@ const selectedRole = roleChoice === "1" ? "viewer" : "editor";
 });
   document.getElementById("logoutButton").addEventListener("click", async () => {
   try {
+   
+  if (auth.currentUser) {
+  localStorage.removeItem(
+    "marifu_approved_" + auth.currentUser.uid
+  );
+}
+localStorage.removeItem(WATER_CACHE_KEY);  
     await signOut(auth);
     alert("ログアウトしました");
     window.location.reload();
@@ -820,13 +827,52 @@ document.getElementById("saveHydrantButton").style.display =
         document.getElementById("loginButton").textContent = "ログイン済み";
         loadWaterSources();
       } else {
+   localStorage.removeItem("marifu_approved_" + user.uid);
+localStorage.removeItem(WATER_CACHE_KEY);
+        
         document.getElementById("loginButton").textContent = "承認待ち";
         alert("分団長の承認待ちです。承認後に水利マップを利用できます。");
       }
-    } catch (error) {
-      console.error(error);
-      document.getElementById("loginButton").textContent = "確認エラー";
-      alert("団員登録の確認ができませんでした。");
+   } catch (error) {
+  console.error(error);
+
+  const approvedAt = Number(
+    localStorage.getItem("marifu_approved_" + user.uid)
+  );
+
+  const cached = getWaterCache();
+  const elapsed = Date.now() - approvedAt;
+
+  if (
+    !navigator.onLine &&
+    auth.currentUser?.uid === user.uid &&
+    approvedAt > 0 &&
+    elapsed >= 0 &&
+    elapsed < WATER_CACHE_DURATION &&
+    cached &&
+    Array.isArray(cached.sources)
+  ) {
+    isAdminUser = false;
+    canEditWaterSources = false;
+
+    document.getElementById("loginButton").textContent =
+      "オフライン閲覧中";
+
+    displayWaterSources(cached.sources);
+
+    alert(
+      "オフライン閲覧モードです。\n" +
+      "保存日時：" +
+      new Date(cached.savedAt).toLocaleString("ja-JP") +
+      "\n最新情報ではない可能性があります。"
+    );
+    return;
+  }
+
+  document.getElementById("loginButton").textContent =
+    "確認エラー";
+
+  alert("団員登録の確認ができませんでした。");
     }
   } else {
     document.getElementById("loginButton").textContent = "Googleでログイン";
@@ -960,7 +1006,9 @@ window.editStatus = async function(id) {
     const memberSnap = await getDoc(
       doc(db, "members", auth.currentUser.uid)
     );
-
+if (memberSnap.metadata.fromCache) {
+  throw new Error("オンラインで承認を確認できません");
+}
     if (!memberSnap.exists() ||
         memberSnap.data().approved !== true) {
       alert("承認された団員だけが削除できます");
@@ -1136,8 +1184,9 @@ function saveWaterCache(data, version = null) {
       WATER_CACHE_KEY,
       JSON.stringify({
         savedAt: new Date().toISOString(),
-        version: version,
-        sources: data
+uid: auth.currentUser?.uid,
+version: version,
+sources: data
       })
     );
   } catch (error) {
@@ -1148,7 +1197,16 @@ function saveWaterCache(data, version = null) {
 function getWaterCache() {
   try {
     const saved = localStorage.getItem(WATER_CACHE_KEY);
-    return saved ? JSON.parse(saved) : null;
+    if (!saved) return null;
+
+const cached = JSON.parse(saved);
+
+if (!auth.currentUser ||
+    cached.uid !== auth.currentUser.uid) {
+  return null;
+}
+
+return cached;
   } catch (error) {
     console.error("保存データの読み込みに失敗:", error);
     return null;
