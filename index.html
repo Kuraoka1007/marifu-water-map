@@ -851,7 +851,11 @@ localStorage.removeItem(WATER_CACHE_KEY);
   const elapsed = Date.now() - approvedAt;
 
   if (
-    !navigator.onLine &&
+    (
+  error.code === "unavailable" ||
+  error.code === "deadline-exceeded" ||
+  error.message === "オンラインで承認を確認できません"
+) &&
     auth.currentUser?.uid === user.uid &&
     approvedAt > 0 &&
     elapsed >= 0 &&
