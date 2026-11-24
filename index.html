@@ -143,8 +143,7 @@ button {
   <button id="revokeMemberButton" style="display:none;">
   承認取り消し
 </button>
-  <button id="logoutButton" type="button"
-onclick="alert('ログアウトボタン確認OK')">
+  <button id="logoutButton" type="button" style="display:none;">
 ログアウト
 </button>
 <button id="addHydrantButton" type="button" style="display:none;">消火栓を追加</button>
@@ -786,7 +785,15 @@ console.log("経度:", lng);
   alert("KMLファイルを読み込みました。登録地点数：" + placemarks.length);
 });
  onAuthStateChanged(auth, async (user) => {
-  isAdminUser = false;
+ document.getElementById("emailLoginButton").style.display =
+  user ? "none" : "inline-block";
+
+document.getElementById("registerButton").style.display =
+  user ? "none" : "inline-block";
+
+document.getElementById("logoutButton").style.display =
+  user ? "inline-block" : "none";
+   isAdminUser = false;
   canEditWaterSources = false;
 
   document.getElementById("importKmlButton").style.display = "none";
