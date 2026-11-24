@@ -1485,7 +1485,60 @@ alert(
   "現在のデータ：" + snapshot.size + "件\n" +
   "復元対象：" + missingSources.length + "件"
 );
+if (missingSources.length === 0) {
+  alert("復元する必要はありません");
+  return;
+}
 
+if (!confirm(
+  missingSources.length + "件の水利データを復元しますか？\n" +
+  "既存の水利データは上書きしません。"
+)) {
+  return;
+}
+let restoredCount = 0;
+
+for (const item of missingSources) {
+
+  const restored = await runTransaction(db, async (transaction) => {
+
+    const waterRef = doc(db, "water_sources", item.id);
+    const versionRef = doc(db, "water_metadata", "version");
+    const memberRef = doc(db, "members", auth.currentUser.uid);
+
+    const memberSnap = await transaction.get(memberRef);
+    const waterSnap = await transaction.get(waterRef);
+
+    if (!memberSnap.exists() ||
+        memberSnap.data().approved !== true ||
+        memberSnap.data().role !== "admin") {
+      throw new Error("管理者権限を確認できません");
+    }
+
+    if (waterSnap.exists()) {
+      return false;
+    }
+
+    const { id, ...data } = item;
+
+    transaction.set(waterRef, data);
+
+    transaction.update(versionRef, {
+      updatedAt: serverTimestamp()
+    });
+
+    return true;
+
+  });
+
+  if (restored) {
+    restoredCount++;
+  }
+}
+
+alert(restoredCount + "件の水利データを復元しました");
+
+await loadWaterSources();    
   } catch (error) {
     alert("ファイル確認エラー：" + error.message);
   }
