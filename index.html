@@ -1463,10 +1463,28 @@ saveWaterCache(sources, currentVersion);
       ids.add(item.id);
     }
 
-    alert(
-      "バックアップファイル確認完了\n" +
-      "水利データ：" + backup.sources.length + "件"
-    );
+   const snapshot = await getDocs(
+  collection(db, "water_sources")
+);
+
+if (snapshot.metadata.fromCache) {
+  throw new Error("最新データを取得できません");
+}
+
+const existingIds = new Set(
+  snapshot.docs.map(item => item.id)
+);
+
+const missingSources = backup.sources.filter(
+  item => !existingIds.has(item.id)
+);
+
+alert(
+  "バックアップ確認完了\n" +
+  "保存データ：" + backup.sources.length + "件\n" +
+  "現在のデータ：" + snapshot.size + "件\n" +
+  "復元対象：" + missingSources.length + "件"
+);
 
   } catch (error) {
     alert("ファイル確認エラー：" + error.message);
