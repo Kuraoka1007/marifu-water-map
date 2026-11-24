@@ -1042,11 +1042,13 @@ window.editStatus = async function(id) {
 if (memberSnap.metadata.fromCache) {
   throw new Error("オンラインで承認を確認できません");
 }
-    if (!memberSnap.exists() ||
-        memberSnap.data().approved !== true) {
-      alert("承認された団員だけが削除できます");
-      return;
-    }
+   if (!memberSnap.exists() ||
+    memberSnap.data().approved !== true ||
+    (memberSnap.data().role !== "admin" &&
+     memberSnap.data().role !== "editor")) {
+  alert("管理者と編集者だけが削除できます");
+  return;
+}
 
     const waterSnap = await getDoc(
       doc(db, "water_sources", id)
@@ -1288,7 +1290,7 @@ if (!Number.isFinite(lat) || !Number.isFinite(lng) ||
 (canEditWaterSources
   ? '<br><button type="button" onclick="editStatus(\'' + doc.id + '\')">使用状態訂正</button>'
   : '') +
-(isAdminUser
+(canEditWaterSources
   ? '<br><button type="button" onclick="deleteHydrant(\'' + doc.id + '\')">削除</button>'
   : '')
 );
