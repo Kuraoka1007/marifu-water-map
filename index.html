@@ -849,6 +849,13 @@ localStorage.removeItem(WATER_CACHE_KEY);
 
   const cached = getWaterCache();
   const elapsed = Date.now() - approvedAt;
+alert(
+  "通信状態：" + navigator.onLine +
+  "\n本人確認：" + (auth.currentUser?.uid === user.uid) +
+  "\n承認日時：" + approvedAt +
+  "\n経過時間（分）：" + Math.round(elapsed / 60000) +
+  "\n保存データ：" + (cached ? "あり" : "なし")
+);
 
   if (
     !navigator.onLine &&
