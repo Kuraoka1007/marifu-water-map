@@ -833,6 +833,48 @@ document.getElementById("saveHydrantButton").style.display =
   }
 });
 
+window.moveHydrant = function(id) {
+  if (!canEditWaterSources) {
+    alert("位置を訂正する権限がありません");
+    return;
+  }
+
+  map.closePopup();
+
+  alert("地図上の新しい位置をクリックしてください");
+
+  map.once("click", async function(e) {
+    const lat = e.latlng.lat;
+    const lng = e.latlng.lng;
+
+    if (!confirm("この位置に変更しますか？")) {
+      return;
+    }
+
+    try {
+      const batch = writeBatch(db);
+
+      batch.update(doc(db, "water_sources", id), {
+        lat: lat,
+        lng: lng
+      });
+
+      batch.update(doc(db, "water_metadata", "version"), {
+        updatedAt: serverTimestamp()
+      });
+
+      await batch.commit();
+
+      localStorage.removeItem(WATER_CACHE_KEY);
+
+      alert("位置を訂正しました");
+      location.reload();
+
+    } catch (error) {
+      alert("位置を保存できませんでした：" + error.message);
+    }
+  });
+};  
 window.editHydrant = async function(id, oldName) {
   const newName = prompt(
     "新しい消火栓の名前を入力してください",
