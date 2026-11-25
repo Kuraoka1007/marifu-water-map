@@ -944,10 +944,19 @@ window.moveHydrant = function(id) {
 
       await batch.commit();
 
-      localStorage.removeItem(WATER_CACHE_KEY);
+      const cached = getWaterCache();
 
-      alert("位置を訂正しました");
-      location.reload();
+const updatedSources = searchWaterSources.map(item =>
+  item.id === id
+    ? { ...item, lat: lat, lng: lng }
+    : item
+);
+
+saveWaterCache(updatedSources, cached?.version ?? null);
+
+displayWaterSources(updatedSources);
+
+alert("位置を訂正しました");
 
     } catch (error) {
       alert("位置を保存できませんでした：" + error.message);
