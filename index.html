@@ -188,17 +188,29 @@ button {
 
 <script>
 const map = L.map('map').setView([34.17,132.22],15);
+
 let addHydrantMode = false;
 
 document.getElementById("addHydrantButton").addEventListener("click", function() {
+  if (!window.canEditNow || !window.canEditNow()) return;
   addHydrantMode = true;
+
   alert("地図上の消火栓の場所をクリックしてください");
 });
+
+
 
 map.on("click", function(e) {
   if (!addHydrantMode) return;
 
+  if (!window.canEditNow || !window.canEditNow()) {
+    addHydrantMode = false;
+    window.newHydrantLocation = null;
+    return;
+  }
+
   const lat = e.latlng.lat;
+
   const lng = e.latlng.lng;
 　window.newHydrantLocation = { lat, lng };
   L.marker([lat, lng])
@@ -457,7 +469,10 @@ localStorage.removeItem(WATER_CACHE_KEY);
     alert("ログアウトできませんでした：" + error.message);
   }
 });
-  document.getElementById("saveHydrantButton").addEventListener("click", async () => {
+  
+
+document.getElementById("saveHydrantButton").addEventListener("click", async () => {
+  if (!canEditNow()) return;
   const location = window.newHydrantLocation;
 
   if (!auth.currentUser) {
@@ -498,12 +513,16 @@ if (!["1", "2", "3"].includes(status)) {
     
     const name = prompt("消防水利の名前を入力してください");
 
-  if (!name || !name.trim()) {
-    alert("保存を中止しました");
-    return;
-  }
 
-  try {
+if (!name || !name.trim()) {
+  alert("保存を中止しました");
+  return;
+}
+
+if (!canEditNow()) return;
+
+try {
+
     
 const batch = writeBatch(db);
 
@@ -655,10 +674,14 @@ await setDoc(doc(db, "members", result.user.uid), {
  let isAdminUser = false; 
 　let canEditWaterSources = false;  
 document.getElementById("importKmlButton").addEventListener("click", () => {
+ if (!canEditNow()) return;
   document.getElementById("kmlFileInput").click();
 });
+
 document.getElementById("kmlFileInput").addEventListener("change", async (event) => {
- if (!isAdminUser) {
+  if (!canEditNow()) return;
+  if (!isAdminUser) {
+
   alert("KMLの取り込みは分団長だけが実行できます");
   return;
 }
@@ -739,6 +762,11 @@ if (!importConfirmed) {
  
 
 async function createWaterSourceIfAbsent(record) {
+  
+if (!canEditNow() || !isAdminUser) {
+  throw new Error("KMLの登録処理を停止しました");
+}
+
   const recordRef = doc(db, importCollection, record.importId);
   const versionRef = doc(db, "water_metadata", "version");
 
@@ -758,6 +786,12 @@ async function createWaterSourceIfAbsent(record) {
 });
 
 transaction.set(doc(collection(db, "water_changes")), {
+  waterId: record.importId,
+  action: "create",
+  updatedAt: serverTimestamp()
+});
+
+transaction.set(doc(db, "water_latest_changes", record.importId), {
   waterId: record.importId,
   action: "create",
   updatedAt: serverTimestamp()
@@ -848,7 +882,45 @@ console.log("経度:", lng);
   
   alert("KMLファイルを読み込みました。登録地点数：" + placemarks.length);
 });
- onAuthStateChanged(auth, async (user) => {
+
+function canEditNow() {
+  if (!navigator.onLine || window.waterDataLoadFailed) {
+    alert(
+      "現在は閲覧専用です。\n" +
+      "通信が復旧し、最新情報を確認してから編集してください。"
+    );
+    return false;
+  }
+
+  if (!auth.currentUser || !canEditWaterSources) {
+    alert("水利情報を編集する権限がありません。");
+    return false;
+  }
+
+  return true;
+}
+
+
+
+window.canEditNow = canEditNow;
+
+  let memberCheckId = 0;
+ 
+async function checkMemberAndLoad(user) {
+
+
+const checkId = ++memberCheckId;
+
+window.waterDataLoadFailed = true;
+
+const warning = document.getElementById("offlineWarning");
+
+if (warning) {
+  warning.textContent = "⚠ 最新の水利情報を確認中です。";
+}
+
+updateOfflineWarning();
+
  document.getElementById("emailLoginButton").style.display =
   user ? "none" : "inline-block";
 
@@ -867,11 +939,28 @@ document.getElementById("logoutButton").style.display =
   document.getElementById("saveHydrantButton").style.display = "none";
   document.getElementById("approveMemberButton").style.display = "none";
   document.getElementById("revokeMemberButton").style.display = "none";
+  
+document.getElementById("backupWaterButton").style.display = "none";
+document.getElementById("restoreWaterButton").style.display = "none";
+
     if (user) {
     document.getElementById("loginButton").textContent = "確認中...";
 
     try {
-      const memberSnap = await getDoc(doc(db, "members", user.uid));
+      
+const memberSnap = await getDocFromServer(
+  doc(db, "members", user.uid)
+);
+
+
+if (
+  checkId !== memberCheckId ||
+  auth.currentUser?.uid !== user.uid
+) {
+  return;
+}
+
+
 
 if (memberSnap.metadata.fromCache) {
   throw new Error("オンラインで承認を確認できません");
@@ -885,10 +974,11 @@ if (memberSnap.exists() && memberSnap.data().approved === true) {
   );
 
   const memberRole = memberSnap.data().role;
+
 canEditWaterSources =
   memberRole === "admin" ||
-  memberRole === "editor" ||
-  memberRole === undefined;
+  memberRole === "editor";
+
 document.getElementById("addHydrantButton").style.display =
   canEditWaterSources ? "inline-block" : "none";
 
@@ -906,17 +996,44 @@ document.getElementById("refreshWaterButton").style.display = "inline-block";
   document.getElementById("revokeMemberButton").style.display = "inline-block";
 }
    
-        document.getElementById("loginButton").textContent = "ログイン済み";
-        loadWaterSources();
+        document.getElementById("loginButton").textContent = "ログイン済み";   
+  await loadWaterSources();
+
       } else {
    localStorage.removeItem("marifu_approved_" + user.uid);
 localStorage.removeItem(WATER_CACHE_KEY);
+ 
+displayWaterSources([]);
+       
         
-        document.getElementById("loginButton").textContent = "承認待ち";
-        alert("分団長の承認待ちです。承認後に水利マップを利用できます。");
+document.getElementById("loginButton").textContent = "承認待ち";
+
+if (warning) {
+  warning.textContent = "⚠ 分団長の承認待ちです。";
+}
+
+updateOfflineWarning();
+
+alert("分団長の承認待ちです。承認後に水利マップを利用できます。");
+
       }
-   } catch (error) {
+  
+if (
+  checkId !== memberCheckId ||
+  auth.currentUser?.uid !== user.uid
+) {
+  return;
+}
+
+    } catch (error) {
   console.error(error);
+
+if (
+  checkId !== memberCheckId ||
+  auth.currentUser?.uid !== user.uid
+) {
+  return;
+}
 
   const approvedAt = Number(
     localStorage.getItem("marifu_approved_" + user.uid)
@@ -927,9 +1044,12 @@ localStorage.removeItem(WATER_CACHE_KEY);
 
   if (
     (
-  error.code === "unavailable" ||
-  error.code === "deadline-exceeded" ||
-  error.message === "オンラインで承認を確認できません"
+ 
+error.code === "unavailable" ||
+error.code === "deadline-exceeded" ||
+error.code === "resource-exhausted" ||
+error.message === "オンラインで承認を確認できません"
+
 ) &&
     auth.currentUser?.uid === user.uid &&
     approvedAt > 0 &&
@@ -943,10 +1063,23 @@ localStorage.removeItem(WATER_CACHE_KEY);
     document.getElementById("backupWaterButton").style.display = "none";
     document.getElementById("restoreWaterButton").style.display = "none";
     
-    document.getElementById("loginButton").textContent =
-      "オフライン閲覧中";
+   
+document.getElementById("loginButton").textContent =
+  "オフライン閲覧中";
 
-    displayWaterSources(cached.sources);
+window.waterDataLoadFailed = true;
+
+const warning = document.getElementById("offlineWarning");
+
+if (warning) {
+  warning.textContent =
+    "⚠ 保存済みの水利情報を表示中：最新情報ではない可能性があります。";
+}
+
+updateOfflineWarning();
+
+displayWaterSources(cached.sources);
+
 
     alert(
       "オフライン閲覧モードです。\n" +
@@ -960,14 +1093,48 @@ localStorage.removeItem(WATER_CACHE_KEY);
   document.getElementById("loginButton").textContent =
     "確認エラー";
 
+isAdminUser = false;
+canEditWaterSources = false;
+displayWaterSources([]);
+
+window.waterDataLoadFailed = true;
+
+const warning = document.getElementById("offlineWarning");
+
+if (warning) {
+  warning.style.display = "block";
+  warning.textContent =
+    "⚠ 団員の閲覧権限を確認できません。";
+}
+
   alert("団員登録の確認ができませんでした。");
     }
-  } else {
-    document.getElementById("loginButton").textContent = "Googleでログイン";
+  
+} else {
+  localStorage.removeItem(WATER_CACHE_KEY);
+  displayWaterSources([]);
+
+  window.waterDataLoadFailed = false;
+  updateOfflineWarning();
+
+  document.getElementById("loginButton").textContent = "Googleでログイン";
+}
+
+}
+
+onAuthStateChanged(auth, checkMemberAndLoad);
+
+window.addEventListener("online", async () => {
+  if (auth.currentUser) {
+    await checkMemberAndLoad(auth.currentUser);
   }
 });
 
+
 window.moveHydrant = function(id) {
+  
+if (!canEditNow()) return;
+
   if (!canEditWaterSources) {
     alert("位置を訂正する権限がありません");
     return;
@@ -984,6 +1151,8 @@ window.moveHydrant = function(id) {
     if (!confirm("この位置に変更しますか？")) {
       return;
     }
+
+if (!canEditNow()) return;
 
     try {
       const batch = writeBatch(db);
@@ -1028,14 +1197,21 @@ alert("位置を訂正しました");
   });
 };  
 window.editHydrant = async function(id, oldName) {
+  
+if (!canEditNow()) return;
+
   const newName = prompt(
     "新しい消火栓の名前を入力してください",
     oldName
   );
 
-  if (newName === null || newName.trim() === "") return;
+  
+if (newName === null || newName.trim() === "") return;
 
-  try {
+if (!canEditNow()) return;
+
+try {
+
     const batch = writeBatch(db);
 
     batch.update(doc(db, "water_sources", id), {
@@ -1078,6 +1254,9 @@ alert("消火栓の名前を保存しました");
 
   
 window.editStatus = async function(id) {
+  
+if (!canEditNow()) return;
+
   if (!auth.currentUser) {
     alert("先にログインしてください");
     return;
@@ -1092,12 +1271,16 @@ window.editStatus = async function(id) {
 
   if (status === null) return;
 
-  if (!["1", "2", "3"].includes(status)) {
-    alert("1・2・3のいずれかを入力してください");
-    return;
-  }
+ 
+if (!["1", "2", "3"].includes(status)) {
+  alert("1・2・3のいずれかを入力してください");
+  return;
+}
 
-  try {
+if (!canEditNow()) return;
+
+try {
+
     const batch = writeBatch(db);
 
     batch.update(doc(db, "water_sources", id), {
@@ -1139,6 +1322,9 @@ alert("使用状態を保存しました！");
 };  
   
   window.deleteHydrant = async function(id) {
+    
+if (!canEditNow()) return;
+
   if (!auth.currentUser) {
     alert("先にログインしてください");
     return;
@@ -1182,6 +1368,8 @@ if (memberSnap.metadata.fromCache) {
       return;
     }
 
+
+if (!canEditNow()) return;
    
 const batch = writeBatch(db);
 
@@ -1219,7 +1407,10 @@ alert(name + " を削除しました");
   }
 };
  
+
 document.getElementById("deleteKmlButton").addEventListener("click", async () => {
+  if (!canEditNow()) return;
+
   if (!auth.currentUser || !isAdminUser) {
     alert("管理者だけが削除できます");
     return;
@@ -1258,6 +1449,7 @@ document.getElementById("deleteKmlButton").addEventListener("click", async () =>
 const batchSize = 3;
 
 for (let i = 0; i < targets.length; i += batchSize) {
+  if (!canEditNow()) return;
   const batch = writeBatch(db);
   const group = targets.slice(i, i + batchSize);
 
@@ -1442,55 +1634,34 @@ console.log("消火栓を地図に追加:", data.name);
  }
   
   
+
 document.getElementById("refreshWaterButton").addEventListener("click", async () => {
   const button = document.getElementById("refreshWaterButton");
 
- 
-if (!auth.currentUser || !isAdminUser) {
-  alert("最新データの更新は分団長（管理者）だけができます");
-  return;
-}
+  if (!auth.currentUser || !isAdminUser) {
+    alert("管理者専用の機能です");
+    return;
+  }
 
+  if (!navigator.onLine) {
+    alert("インターネットに接続してください");
+    return;
+  }
 
   button.disabled = true;
   button.textContent = "更新中...";
 
   try {
-    const snapshot = await getDocs(collection(db, "water_sources"));
-
-    const sources = snapshot.docs.map(item => ({
-      id: item.id,
-      ...item.data()
-    }));
-
-   
-const versionSnapshot = await getDoc(
-  doc(db, "water_metadata", "version")
-);
-
-const currentVersion = versionSnapshot.exists()
-  ? versionSnapshot.data().updatedAt.toMillis()
-  : null;
-
-saveWaterCache(sources, currentVersion);
-
-
-    alert(
-      "最新データを取得しました。\n" +
-      "水利データ：" + sources.length + "件\n" +
-      "地図を再表示します。"
-    );
-
-    window.location.reload();
-
+    await checkMemberAndLoad(auth.currentUser);
   } catch (error) {
     console.error("更新エラー:", error);
-    alert("更新できませんでした：" + error.message);
+    alert("更新できませんでした");
   } finally {
     button.disabled = false;
     button.textContent = "🔄 最新データに更新";
   }
 });
+
 
   document.getElementById("backupWaterButton")
   .addEventListener("click", async () => {
@@ -1548,8 +1719,8 @@ saveWaterCache(sources, currentVersion);
     alert("バックアップに失敗しました：" + error.message);
   }
 });
-  document.getElementById("restoreWaterButton")
-  .addEventListener("click", () => {
+  document.getElementById("restoreWaterButton").addEventListener("click", () => {
+  if (!canEditNow()) return;
 
   if (!isAdminUser || !auth.currentUser) {
     alert("管理者専用の機能です");
@@ -1568,6 +1739,8 @@ saveWaterCache(sources, currentVersion);
 });
   document.getElementById("restoreWaterFile")
   .addEventListener("change", async (event) => {
+
+if (!canEditNow()) return;
 
   if (!isAdminUser || !auth.currentUser) {
     alert("管理者専用の機能です");
@@ -1644,6 +1817,10 @@ let restoredCount = 0;
 
 for (const item of missingSources) {
 
+if (!canEditNow() || !isAdminUser) {
+  throw new Error("復元を停止しました。復元済み：" + restoredCount + "件");
+}
+
   const restored = await runTransaction(db, async (transaction) => {
 
     const waterRef = doc(db, "water_sources", item.id);
@@ -1667,6 +1844,18 @@ for (const item of missingSources) {
 
     transaction.set(waterRef, data);
 
+transaction.set(doc(collection(db, "water_changes")), {
+  waterId: item.id,
+  action: "create",
+  updatedAt: serverTimestamp()
+});
+
+transaction.set(doc(db, "water_latest_changes", item.id), {
+  waterId: item.id,
+  action: "create",
+  updatedAt: serverTimestamp()
+});
+
     transaction.update(versionRef, {
       updatedAt: serverTimestamp()
     });
@@ -1689,12 +1878,26 @@ await loadWaterSources();
 
 });
   
+
 async function loadWaterSources() {
+  const loadingUserId = auth.currentUser?.uid;
+  const loadingCheckId = memberCheckId;
+
+  if (!loadingUserId) return;
+
   const cached = getWaterCache();
+
 
   try {
     const versionRef = doc(db, "water_metadata", "version");
     const versionSnap = await getDocFromServer(versionRef);
+
+if (
+  loadingCheckId !== memberCheckId ||
+  auth.currentUser?.uid !== loadingUserId
+) {
+  return;
+}
 
     const currentVersion = versionSnap.data()?.updatedAt;
 
@@ -1723,6 +1926,10 @@ async function loadWaterSources() {
       previousVersion.isEqual(currentVersion)
     ) {
       console.log("保存済みの水利データを使用します");
+      
+window.waterDataLoadFailed = false;
+updateOfflineWarning();
+
       displayWaterSources(cached.sources);
       return;
     }
@@ -1787,6 +1994,14 @@ async function loadWaterSources() {
     }
 
     const checkSnap = await getDocFromServer(versionRef);
+    
+if (
+  loadingCheckId !== memberCheckId ||
+  auth.currentUser?.uid !== loadingUserId
+) {
+  return;
+}
+
     const checkedAt = checkSnap.data()?.updatedAt;
 
     if (
@@ -1805,12 +2020,72 @@ async function loadWaterSources() {
     });
 
     displayWaterSources(sources);
+    
+window.waterDataLoadFailed = false;
+updateOfflineWarning();
 
   } catch (error) {
+   
+if (
+  loadingCheckId !== memberCheckId ||
+  auth.currentUser?.uid !== loadingUserId
+) {
+  return;
+}
+
     console.error("Firebase読み込みエラー:", error);
 
-    if (cached && Array.isArray(cached.sources)) {
-      displayWaterSources(cached.sources);
+if (
+  error.code === "permission-denied" ||
+  error.code === "unauthenticated"
+) {
+  localStorage.removeItem(WATER_CACHE_KEY);
+  canEditWaterSources = false;
+  displayWaterSources([]);
+
+  window.waterDataLoadFailed = true;
+
+  const warning = document.getElementById("offlineWarning");
+
+  if (warning) {
+    warning.style.display = "block";
+    warning.textContent =
+      "⚠ 水利情報の閲覧権限を確認できません。";
+  }
+
+  alert("閲覧権限を確認できません。管理者にお問い合わせください。");
+  return;
+}
+
+    
+window.waterDataLoadFailed = true;
+
+const warning = document.getElementById("offlineWarning");
+
+if (warning) {
+  warning.style.display = "block";
+  warning.textContent =
+    "⚠ 最新の水利情報を取得できません。";
+}
+
+
+
+    
+const approvedAt = Number(
+  localStorage.getItem("marifu_approved_" + loadingUserId)
+);
+
+const elapsed = Date.now() - approvedAt;
+
+if (
+  approvedAt > 0 &&
+  elapsed >= 0 &&
+  elapsed < WATER_CACHE_DURATION &&
+  cached &&
+  Array.isArray(cached.sources)
+) {
+  displayWaterSources(cached.sources);
+
 
       
       alert(
@@ -1821,12 +2096,21 @@ async function loadWaterSources() {
         "\n※最新情報ではない可能性があります。"
       );
 
-    } else {
-      alert(
-        "水利情報を読み込めませんでした。\n" +
-        "保存済みデータもありません。"
-      );
-    }
+   
+} else {
+  displayWaterSources([]);
+
+  if (warning) {
+    warning.textContent =
+      "⚠ 水利情報を閲覧できません。通信復旧後に再確認してください。";
+  }
+
+  alert(
+    "水利情報を読み込めませんでした。\n" +
+    "有効な保存済みデータがないか、閲覧期限を過ぎています。"
+  );
+}
+
   }
 }
 
@@ -1835,17 +2119,39 @@ async function loadWaterSources() {
 
 <script>
 
+
 function updateOfflineWarning() {
   const warning = document.getElementById("offlineWarning");
 
-  if (warning) {
-    warning.style.display =
-      navigator.onLine ? "none" : "block";
+  if (!warning) return;
+
+  if (window.waterDataLoadFailed) {
+    warning.style.display = "block";
+  } else if (!navigator.onLine) {
+    warning.style.display = "block";
+    warning.textContent =
+      "⚠ オフライン閲覧中：最新の水利情報ではない可能性があります。";
+  } else {
+    warning.style.display = "none";
   }
 }
 
+
 window.addEventListener("online", updateOfflineWarning);
-window.addEventListener("offline", updateOfflineWarning);
+
+window.addEventListener("offline", () => {
+  window.waterDataLoadFailed = true;
+
+  const warning = document.getElementById("offlineWarning");
+
+  if (warning) {
+    warning.textContent =
+      "⚠ オフライン閲覧中：最新の水利情報ではない可能性があります。";
+  }
+
+  updateOfflineWarning();
+});
+
 
 updateOfflineWarning();
 
