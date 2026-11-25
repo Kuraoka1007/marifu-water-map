@@ -503,12 +503,29 @@ batch.update(doc(db, "water_metadata", "version"), {
 
 await batch.commit();
 
-localStorage.removeItem(WATER_CACHE_KEY);
+const cached = getWaterCache();
+
+const updatedSources = [
+  ...searchWaterSources.filter(item =>
+    item.id !== newWaterRef.id
+  ),
+  {
+    id: newWaterRef.id,
+    name: name.trim(),
+    type: type,
+    status: status,
+    lat: location.lat,
+    lng: location.lng
+  }
+];
+
+saveWaterCache(updatedSources, cached?.version ?? null);
+
+displayWaterSources(updatedSources);
 
 window.newHydrantLocation = null;
 
-    alert("消火栓を保存しました！");
-    window.location.reload();
+alert("消火栓を保存しました！");
   } catch (error) {
     console.error(error);
     alert("保存できませんでした：" + error.message);
