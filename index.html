@@ -1820,5 +1820,19 @@ async function loadWaterSources() {
 
 </script>
 <input type="file" id="kmlFileInput" accept=".kml,.kmz" style="display:none">
+
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js")
+      .then(() => {
+        console.log("オフライン起動設定完了");
+      })
+      .catch(error => {
+        console.error("オフライン起動設定エラー:", error);
+      });
+  });
+}
+</script>
 </body>
 </html>
