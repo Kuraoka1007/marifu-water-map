@@ -975,10 +975,19 @@ window.editHydrant = async function(id, oldName) {
 
     await batch.commit();
 
-    localStorage.removeItem(WATER_CACHE_KEY);
+    const cached = getWaterCache();
 
-    alert("消火栓の名前を保存しました");
-    location.reload();
+const updatedSources = searchWaterSources.map(item =>
+  item.id === id
+    ? { ...item, name: newName.trim() }
+    : item
+);
+
+saveWaterCache(updatedSources, cached?.version ?? null);
+
+displayWaterSources(updatedSources);
+
+alert("消火栓の名前を保存しました");
 
   } catch (error) {
     alert("保存できませんでした：" + error.message);
