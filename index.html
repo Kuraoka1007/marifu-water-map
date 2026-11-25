@@ -1028,10 +1028,19 @@ window.editStatus = async function(id) {
 
     await batch.commit();
 
-    localStorage.removeItem(WATER_CACHE_KEY);
+    const cached = getWaterCache();
 
-    alert("使用状態を保存しました！");
-    window.location.reload();
+const updatedSources = searchWaterSources.map(item =>
+  item.id === id
+    ? { ...item, status: status }
+    : item
+);
+
+saveWaterCache(updatedSources, cached?.version ?? null);
+
+displayWaterSources(updatedSources);
+
+alert("使用状態を保存しました！");
 
   } catch (error) {
     alert("保存できませんでした：" + error.message);
