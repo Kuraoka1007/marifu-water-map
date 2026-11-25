@@ -496,7 +496,11 @@ batch.set(newWaterRef, {
   lat: location.lat,
   lng: location.lng
 });
-
+batch.set(doc(collection(db, "water_changes")), {
+  waterId: newWaterRef.id,
+  action: "create",
+  updatedAt: serverTimestamp()
+});
 batch.update(doc(db, "water_metadata", "version"), {
   updatedAt: serverTimestamp()
 });
