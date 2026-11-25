@@ -1645,7 +1645,8 @@ saveWaterCache(searchWaterSources, currentVersion);
   const cached = getWaterCache();
 
   if (cached && Array.isArray(cached.sources) && cached.sources.length > 0) {
-    displayWaterSources(cached.sources);
+    searchWaterSources = cached.sources;
+displayWaterSources(searchWaterSources);
 
     alert(
       "Firebaseから最新データを取得できませんでした。\n" +
