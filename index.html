@@ -497,12 +497,17 @@ batch.set(newWaterRef, {
   lng: location.lng
 });
 const changeRef = doc(collection(db, "water_changes"));
-
+batch.set(doc(db, "water_latest_changes", newWaterRef.id), {
+  waterId: newWaterRef.id,
+  action: "create",
+  updatedAt: serverTimestamp()
+});
 batch.set(changeRef, {
   waterId: newWaterRef.id,
   action: "create",
   updatedAt: serverTimestamp()
 });
+    
 batch.update(doc(db, "water_metadata", "version"), {
   updatedAt: serverTimestamp()
 });
@@ -972,6 +977,11 @@ batch.set(doc(collection(db, "water_changes")), {
   action: "update",
   updatedAt: serverTimestamp()
 });
+      batch.set(doc(db, "water_latest_changes", id), {
+  waterId: id,
+  action: "update",
+  updatedAt: serverTimestamp()
+});
       batch.update(doc(db, "water_metadata", "version"), {
         updatedAt: serverTimestamp()
       });
@@ -1012,6 +1022,11 @@ window.editHydrant = async function(id, oldName) {
       name: newName.trim()
     });
 batch.set(doc(collection(db, "water_changes")), {
+  waterId: id,
+  action: "update",
+  updatedAt: serverTimestamp()
+});
+   batch.set(doc(db, "water_latest_changes", id), {
   waterId: id,
   action: "update",
   updatedAt: serverTimestamp()
@@ -1069,6 +1084,11 @@ window.editStatus = async function(id) {
       status: status
     });
 batch.set(doc(collection(db, "water_changes")), {
+  waterId: id,
+  action: "update",
+  updatedAt: serverTimestamp()
+});
+  batch.set(doc(db, "water_latest_changes", id), {
   waterId: id,
   action: "update",
   updatedAt: serverTimestamp()
@@ -1151,6 +1171,11 @@ batch.set(doc(collection(db, "water_changes")), {
   action: "delete",
   updatedAt: serverTimestamp()
 });
+batch.set(doc(db, "water_latest_changes", id), {
+  waterId: id,
+  action: "delete",
+  updatedAt: serverTimestamp()
+});    
 batch.update(doc(db, "water_metadata", "version"), {
   updatedAt: serverTimestamp()
 });
@@ -1210,7 +1235,7 @@ document.getElementById("deleteKmlButton").addEventListener("click", async () =>
     let deleted = 0;
 
    
-const batchSize = 50;
+const batchSize = 3;
 
 for (let i = 0; i < targets.length; i += batchSize) {
   const batch = writeBatch(db);
@@ -1224,7 +1249,12 @@ for (let i = 0; i < targets.length; i += batchSize) {
     action: "delete",
     updatedAt: serverTimestamp()
   });
-}
+batch.set(doc(db, "water_latest_changes", item.id), {
+  waterId: item.id,
+  action: "delete",
+  updatedAt: serverTimestamp()
+});
+  }
 
   batch.update(doc(db, "water_metadata", "version"), {
     updatedAt: serverTimestamp()
