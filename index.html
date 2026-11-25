@@ -242,6 +242,7 @@ import {
   signOut
 } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
 
+
 import {
   getFirestore,
   collection,
@@ -254,8 +255,15 @@ import {
   runTransaction,
   deleteDoc,
   writeBatch,
-  serverTimestamp
+  serverTimestamp,
+  query,
+  where,
+  getDocFromServer,
+  getDocsFromServer,
+  Timestamp
+
 } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
+
 
   ;
 const firebaseConfig = {
@@ -1668,122 +1676,148 @@ await loadWaterSources();
   }
 
 });
-  async function loadWaterSources() {
+  
+async function loadWaterSources() {
+  const cached = getWaterCache();
+
   try {
-　   const cached = getWaterCache();
+    const versionRef = doc(db, "water_metadata", "version");
+    const versionSnap = await getDocFromServer(versionRef);
 
-    const versionSnap = await getDoc(
-      doc(db, "water_metadata", "version")
-    );
+    const currentVersion = versionSnap.data()?.updatedAt;
 
-    if (!versionSnap.exists()) {
-      throw new Error("水利データの更新情報がありません");
+    if (!(currentVersion instanceof Timestamp)) {
+      throw new Error("更新日時を確認できません");
     }
 
-    const updatedAt = versionSnap.data().updatedAt;
+    const oldVersion = cached?.version;
 
-    if (!updatedAt || typeof updatedAt.toMillis !== "function") {
-      throw new Error("更新日時を読み取れません");
-    }
+    const validCache =
+      cached &&
+      Array.isArray(cached.sources) &&
+      oldVersion?.schema === 2 &&
+      Number.isInteger(oldVersion.seconds) &&
+      Number.isInteger(oldVersion.nanoseconds);
 
-    const currentVersion = updatedAt.toMillis();
+    const previousVersion = validCache
+      ? new Timestamp(
+          oldVersion.seconds,
+          oldVersion.nanoseconds
+        )
+      : null;
 
-    
-   
-const cacheIsValid =
-  cached &&
-  Array.isArray(cached.sources) &&
-  cached.sources.length > 0 &&
-  cached.version === currentVersion;
-
-        if (cacheIsValid) {
+    if (
+      validCache &&
+      previousVersion.isEqual(currentVersion)
+    ) {
       console.log("保存済みの水利データを使用します");
-      searchWaterSources = cached.sources;
-      displayWaterSources(searchWaterSources);
+      displayWaterSources(cached.sources);
       return;
     }
 
+    let sources;
 
-    if (cached && Array.isArray(cached.sources)) {
-      console.log(
-        "スマホに保存された水利データ:",
-        cached.sources.length,
-        "件"
+    if (
+      validCache &&
+      previousVersion < currentVersion
+    ) {
+      const changes = await getDocsFromServer(
+        query(
+          collection(db, "water_latest_changes"),
+          where("updatedAt", ">", previousVersion),
+          where("updatedAt", "<=", currentVersion)
+        )
       );
-      console.log("保存日時:", cached.savedAt);
+
+      const sourceMap = new Map(
+        cached.sources.map(item => [item.id, item])
+      );
+
+      for (const change of changes.docs) {
+        const data = change.data();
+        const id = change.id;
+
+        if (data.action === "delete") {
+          sourceMap.delete(id);
+        } else {
+          const waterSnap = await getDocFromServer(
+            doc(db, "water_sources", id)
+          );
+
+          if (!waterSnap.exists()) {
+            throw new Error("水利情報が更新されています");
+          }
+
+          sourceMap.set(id, {
+            ...waterSnap.data(),
+            id: id
+          });
+        }
+      }
+
+      sources = Array.from(sourceMap.values());
+
+      console.log(
+        "差分更新件数:", changes.size
+      );
+
+    } else {
+      const snapshot = await getDocsFromServer(
+        collection(db, "water_sources")
+      );
+
+      sources = snapshot.docs.map(item => ({
+        ...item.data(),
+        id: item.id
+      }));
+
+      console.log("全件読み込み:", sources.length);
     }
 
-    const snapshot = await getDocs(collection(db, "water_sources"));
-searchWaterSources = snapshot.docs.map(item => ({
-  id: item.id,
-  ...item.data()
-}));
-        
+    const checkSnap = await getDocFromServer(versionRef);
+    const checkedAt = checkSnap.data()?.updatedAt;
 
-const versionCheckSnap = await getDoc(
-  doc(db, "water_metadata", "version")
-);
+    if (
+      !(checkedAt instanceof Timestamp) ||
+      !checkedAt.isEqual(currentVersion)
+    ) {
+      throw new Error(
+        "読み込み中に更新がありました。再読み込みしてください。"
+      );
+    }
 
-if (!versionCheckSnap.exists()) {
-  throw new Error("更新情報が見つかりません");
-}
+    saveWaterCache(sources, {
+      schema: 2,
+      seconds: currentVersion.seconds,
+      nanoseconds: currentVersion.nanoseconds
+    });
 
-const checkedAt = versionCheckSnap.data().updatedAt;
+    displayWaterSources(sources);
 
-if (!checkedAt || typeof checkedAt.toMillis !== "function") {
-  throw new Error("更新日時を確認できません");
-}
+  } catch (error) {
+    console.error("Firebase読み込みエラー:", error);
 
-if (checkedAt.toMillis() !== currentVersion) {
-  throw new Error(
-    "水利データの読み込み中に更新がありました。再読み込みしてください。"
-  );
-}
+    if (cached && Array.isArray(cached.sources)) {
+      displayWaterSources(cached.sources);
 
-saveWaterCache(searchWaterSources, currentVersion);
+      
+      alert(
+        "最新データを取得できませんでした。\n" +
+        "保存済みの水利情報を表示します。\n" +
+        "端末への保存日時：" +
+        new Date(cached.savedAt).toLocaleString("ja-JP") +
+        "\n※最新情報ではない可能性があります。"
+      );
 
-
-
-    displayWaterSources(searchWaterSources);
-    const markers = [];
-　console.log("マーカー確認開始");
-    console.log("地図上のマーカー確認開始");
-    map.eachLayer((layer) => {
- if (layer instanceof L.Marker || layer instanceof L.CircleMarker) {
-    markers.push(layer);
-  }
-      console.log("マーカーの位置と名前:",
-  layer instanceof L.Marker ? layer.getLatLng() : "位置なし",
-  layer instanceof L.Marker ? (layer.getPopup()?.getContent() || "名前なし") : "マーカー以外"
-);
-});
-　
-    if (markers.length > 0) {
-  map.setView([34.17, 132.22], 13);
-}
- } catch (error) {
-  console.error("Firebase読み込みエラー:", error);
-
-  const cached = getWaterCache();
-
-  if (cached && Array.isArray(cached.sources) && cached.sources.length > 0) {
-    searchWaterSources = cached.sources;
-displayWaterSources(searchWaterSources);
-
-    alert(
-      "Firebaseから最新データを取得できませんでした。\n" +
-      "スマホに保存された水利情報を表示します。\n" +
-      "保存日時：" + new Date(cached.savedAt).toLocaleString("ja-JP") +
-      "\n※最新情報ではない可能性があります。"
-    );
-  } else {
-    alert(
-      "水利情報を読み込めませんでした。\n" +
-      "保存済みデータもありません。"
-    );
+    } else {
+      alert(
+        "水利情報を読み込めませんでした。\n" +
+        "保存済みデータもありません。"
+      );
+    }
   }
 }
-}
+
 </script>
 <input type="file" id="kmlFileInput" accept=".kml,.kmz" style="display:none">
 </body>
