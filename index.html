@@ -496,7 +496,9 @@ batch.set(newWaterRef, {
   lat: location.lat,
   lng: location.lng
 });
-batch.set(doc(collection(db, "water_changes")), {
+const changeRef = doc(collection(db, "water_changes"));
+
+batch.set(changeRef, {
   waterId: newWaterRef.id,
   action: "create",
   updatedAt: serverTimestamp()
@@ -507,6 +509,7 @@ batch.update(doc(db, "water_metadata", "version"), {
 
 await batch.commit();
 
+console.log("新規登録の変更履歴ID:", changeRef.id);
 const cached = getWaterCache();
 
 const updatedSources = [
