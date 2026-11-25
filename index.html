@@ -954,7 +954,11 @@ window.moveHydrant = function(id) {
         lat: lat,
         lng: lng
       });
-
+batch.set(doc(collection(db, "water_changes")), {
+  waterId: id,
+  action: "update",
+  updatedAt: serverTimestamp()
+});
       batch.update(doc(db, "water_metadata", "version"), {
         updatedAt: serverTimestamp()
       });
