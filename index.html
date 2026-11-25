@@ -1111,10 +1111,17 @@ batch.update(doc(db, "water_metadata", "version"), {
 
 await batch.commit();
 
-localStorage.removeItem(WATER_CACHE_KEY);
+const cached = getWaterCache();
+
+const updatedSources = searchWaterSources.filter(item =>
+  item.id !== id
+);
+
+saveWaterCache(updatedSources, cached?.version ?? null);
+
+displayWaterSources(updatedSources);
 
 alert(name + " を削除しました");
-window.location.reload();
 
   } catch (error) {
     alert("削除できませんでした：" + error.message);
