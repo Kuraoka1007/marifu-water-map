@@ -1248,6 +1248,12 @@ return cached;
   }
 }
   function displayWaterSources(sources) {
+  waterSourceMarkers.forEach((marker) => {
+    map.removeLayer(marker);
+  });
+
+  waterSourceMarkers.clear();
+
   searchWaterSources = sources;
 
   sources.forEach((item) => {
