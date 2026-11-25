@@ -1133,7 +1133,11 @@ if (memberSnap.metadata.fromCache) {
 const batch = writeBatch(db);
 
 batch.delete(doc(db, "water_sources", id));
-
+batch.set(doc(collection(db, "water_changes")), {
+  waterId: id,
+  action: "delete",
+  updatedAt: serverTimestamp()
+});
 batch.update(doc(db, "water_metadata", "version"), {
   updatedAt: serverTimestamp()
 });
