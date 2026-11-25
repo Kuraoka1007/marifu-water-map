@@ -1211,8 +1211,14 @@ for (let i = 0; i < targets.length; i += batchSize) {
   const group = targets.slice(i, i + batchSize);
 
   for (const item of group) {
-    batch.delete(doc(db, "water_sources", item.id));
-  }
+  batch.delete(doc(db, "water_sources", item.id));
+
+  batch.set(doc(collection(db, "water_changes")), {
+    waterId: item.id,
+    action: "delete",
+    updatedAt: serverTimestamp()
+  });
+}
 
   batch.update(doc(db, "water_metadata", "version"), {
     updatedAt: serverTimestamp()
