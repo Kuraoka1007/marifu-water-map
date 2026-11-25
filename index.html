@@ -994,7 +994,11 @@ window.editHydrant = async function(id, oldName) {
     batch.update(doc(db, "water_sources", id), {
       name: newName.trim()
     });
-
+batch.set(doc(collection(db, "water_changes")), {
+  waterId: id,
+  action: "update",
+  updatedAt: serverTimestamp()
+});
     batch.update(doc(db, "water_metadata", "version"), {
       updatedAt: serverTimestamp()
     });
