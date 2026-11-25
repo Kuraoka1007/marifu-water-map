@@ -725,16 +725,22 @@ async function createWaterSourceIfAbsent(record) {
     }
 
     transaction.set(recordRef, {
-      name: record.name,
-      type: record.type,
-      status: record.status,
-      lat: record.lat,
-      lng: record.lng
-    });
+  name: record.name,
+  type: record.type,
+  status: record.status,
+  lat: record.lat,
+  lng: record.lng
+});
 
-    transaction.update(versionRef, {
-      updatedAt: serverTimestamp()
-    });
+transaction.set(doc(collection(db, "water_changes")), {
+  waterId: record.importId,
+  action: "create",
+  updatedAt: serverTimestamp()
+});
+
+transaction.update(versionRef, {
+  updatedAt: serverTimestamp()
+});
 
     return true;
   });
