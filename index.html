@@ -109,6 +109,18 @@ button {
 
 <header>麻里布分団 水利マップ</header>
 
+<div id="offlineWarning" role="alert"
+  style="display:none;
+  background:#fff3cd;
+  color:#856404;
+  padding:10px;
+  text-align:center;
+  font-weight:bold;
+  font-size:14px;">
+  ⚠ オフライン閲覧中<br>
+  最新の水利情報ではない可能性があります。
+</div>
+
 <div id="menu">
 <input
   type="text"
@@ -1822,7 +1834,23 @@ async function loadWaterSources() {
 <input type="file" id="kmlFileInput" accept=".kml,.kmz" style="display:none">
 
 <script>
-if ("serviceWorker" in navigator) {
+
+function updateOfflineWarning() {
+  const warning = document.getElementById("offlineWarning");
+
+  if (warning) {
+    warning.style.display =
+      navigator.onLine ? "none" : "block";
+  }
+}
+
+window.addEventListener("online", updateOfflineWarning);
+window.addEventListener("offline", updateOfflineWarning);
+
+updateOfflineWarning();
+
+
+  if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("./sw.js")
       .then(() => {
